@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G検定 クイズアプリ ⚡</title>
+<style>
+:root{--bg:#0a0a1a;--panel:#12122a;--card:#1a1a3a;--border:#2a2a5a;--accent:#7c3aed;--accent2:#06b6d4;--gold:#f59e0b;--green:#10b981;--red:#ef4444;--text:#e2e8f0;--muted:#94a3b8;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;min-height:100vh;overflow-x:hidden;}
+#stars{position:fixed;inset:0;pointer-events:none;z-index:0;}
+.screen{position:relative;z-index:1;display:none;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+
+/* ── HOME ── */
+#homeScreen{padding:1.5rem 1.5rem 6rem;gap:1.2rem;}
+.logo-title{font-size:clamp(1.8rem,6vw,3rem);font-weight:900;background:linear-gradient(135deg,#7c3aed,#06b6d4,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:pulse-glow 2s ease-in-out infinite;}
+@keyframes pulse-glow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.3)}}
+.logo-sub{color:var(--muted);font-size:.9rem;margin-top:.3rem;text-align:center;}
+.stats-bar{display:flex;gap:1rem;background:var(--panel);border:1px solid var(--border);border-radius:1rem;padding:.8rem 1.5rem;flex-wrap:wrap;justify-content:center;width:100%;max-width:500px;}
+.stat-item{text-align:center;}
+.stat-num{font-size:1.6rem;font-weight:700;color:var(--gold);}
+.stat-label{font-size:.7rem;color:var(--muted);}
+
+/* daily card */
+.daily-card{width:100%;max-width:500px;background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(6,182,212,.15));border:1px solid var(--accent);border-radius:1.2rem;padding:1.2rem;cursor:pointer;transition:all .2s;}
+.daily-card:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(124,58,237,.3);}
+.daily-header{display:flex;justify-content:space-between;align-items:center;}
+.daily-title{font-size:1.1rem;font-weight:700;}
+.streak-badge{background:linear-gradient(135deg,var(--gold),#f97316);border-radius:2rem;padding:.3rem .8rem;font-size:.85rem;font-weight:700;color:#fff;}
+.daily-desc{font-size:.82rem;color:var(--muted);margin-top:.4rem;}
+.daily-done{color:var(--green);font-weight:600;margin-top:.4rem;font-size:.85rem;}
+
+.menu-grid{display:grid;gap:.75rem;width:100%;max-width:500px;}
+.menu-btn{display:flex;align-items:center;gap:1rem;background:var(--panel);border:1px solid var(--border);border-radius:1rem;padding:1rem 1.2rem;cursor:pointer;color:var(--text);font-size:1rem;font-weight:600;transition:all .2s;width:100%;text-align:left;}
+.menu-btn:hover{border-color:var(--accent);background:var(--card);transform:translateY(-2px);box-shadow:0 4px 20px rgba(124,58,237,.3);}
+.menu-btn .icon{font-size:1.6rem;}
+.menu-btn .desc{font-size:.75rem;color:var(--muted);font-weight:400;margin-top:.1rem;}
+.menu-btn.danger{border-color:var(--red);}
+.menu-btn.danger:hover{background:rgba(239,68,68,.1);}
+.badge{background:var(--red);color:#fff;border-radius:2rem;font-size:.72rem;padding:.1rem .45rem;font-weight:700;}
+
+/* ── SETTINGS ── */
+#settingsScreen{padding:1.5rem;gap:1.2rem;}
+.screen-header{display:flex;align-items:center;gap:1rem;width:100%;max-width:520px;}
+.back-btn{background:var(--panel);border:1px solid var(--border);border-radius:.75rem;padding:.5rem 1rem;cursor:pointer;color:var(--text);font-size:.9rem;transition:all .2s;flex-shrink:0;}
+.back-btn:hover{border-color:var(--accent);}
+.screen-title{font-size:1.4rem;font-weight:700;}
+.settings-card{background:var(--panel);border:1px solid var(--border);border-radius:1rem;padding:1.2rem;width:100%;max-width:520px;}
+.settings-card h3{font-size:.82rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:.8rem;}
+.chip-group{display:flex;gap:.5rem;flex-wrap:wrap;}
+.chip{padding:.45rem 1.1rem;border-radius:2rem;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:.88rem;transition:all .2s;}
+.chip:hover,.chip.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.chip.multi.active{background:var(--accent2);border-color:var(--accent2);}
+.start-big{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:1rem;padding:1.1rem 3rem;font-size:1.1rem;font-weight:700;color:#fff;cursor:pointer;transition:all .2s;width:100%;max-width:520px;box-shadow:0 4px 20px rgba(124,58,237,.4);}
+.start-big:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(124,58,237,.5);}
+
+/* ── QUIZ ── */
+#quizScreen{padding:1rem 1rem 6rem;gap:.9rem;}
+.quiz-topbar{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:640px;padding:.3rem 0;}
+.quiz-score{font-size:1.3rem;font-weight:700;color:var(--gold);}
+.quiz-progress{font-size:.88rem;color:var(--muted);}
+.combo-badge{background:linear-gradient(135deg,#f59e0b,#ef4444);border-radius:2rem;padding:.25rem .7rem;font-size:.82rem;font-weight:700;color:#fff;display:none;}
+.combo-badge.show{display:block;animation:pop .3s ease;}
+@keyframes pop{0%{transform:scale(.5)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+.timer-wrap{width:100%;max-width:640px;}
+.timer-bar-bg{height:7px;background:var(--border);border-radius:4px;overflow:hidden;}
+.timer-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--green),var(--accent2));transition:width .1s linear,background .5s;}
+.timer-bar.warn{background:linear-gradient(90deg,var(--gold),var(--red));}
+.q-card{background:var(--panel);border:1px solid var(--border);border-radius:1.2rem;padding:1.4rem;width:100%;max-width:640px;}
+.q-badge{font-size:.72rem;color:var(--accent2);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:.6rem;}
+.q-text{font-size:1.1rem;font-weight:600;line-height:1.6;}
+.q-chapter{font-size:.72rem;color:var(--muted);margin-top:.4rem;}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;width:100%;max-width:640px;}
+@media(max-width:480px){.answers{grid-template-columns:1fr;}}
+.ans-btn{background:var(--card);border:1.5px solid var(--border);border-radius:1rem;padding:.9rem;cursor:pointer;color:var(--text);font-size:.88rem;line-height:1.5;text-align:left;transition:all .15s;min-height:65px;}
+.ans-btn:hover:not(:disabled){border-color:var(--accent);background:rgba(124,58,237,.1);}
+.ans-btn .key{font-weight:700;color:var(--accent2);margin-right:.35rem;}
+.ans-btn.correct{border-color:var(--green);background:rgba(16,185,129,.15);color:#fff;}
+.ans-btn.wrong{border-color:var(--red);background:rgba(239,68,68,.15);}
+.ans-btn.reveal{border-color:var(--green);background:rgba(16,185,129,.08);}
+.ans-btn:disabled{cursor:default;}
+.feedback-overlay{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity .2s;}
+.feedback-overlay.show{opacity:1;}
+.feedback-big{font-size:5rem;font-weight:900;text-shadow:0 0 30px currentColor;animation:feedback-pop .4s ease;}
+@keyframes feedback-pop{0%{transform:scale(0) rotate(-10deg)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+.feedback-correct .feedback-big{color:var(--green);}
+.feedback-wrong .feedback-big{color:var(--red);}
+.screen-flash{position:fixed;inset:0;pointer-events:none;z-index:90;opacity:0;transition:opacity .1s;}
+.screen-flash.green{background:rgba(16,185,129,.15);}
+.screen-flash.red{background:rgba(239,68,68,.15);}
+.screen-flash.show{opacity:1;}
+.explanation{background:var(--card);border:1px solid var(--accent);border-radius:1rem;padding:1.1rem;width:100%;max-width:640px;display:none;animation:slide-in .3s ease;}
+.explanation.show{display:block;}
+@keyframes slide-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.explanation h4{color:var(--accent2);font-size:.82rem;margin-bottom:.4rem;}
+.explanation .ex-text{font-size:.88rem;line-height:1.7;}
+.explanation .ex-example{color:var(--gold);font-size:.82rem;margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border);}
+.next-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:1rem;padding:.85rem 2rem;font-size:.95rem;font-weight:700;color:#fff;cursor:pointer;display:none;transition:all .2s;width:100%;max-width:640px;box-shadow:0 4px 20px rgba(124,58,237,.3);}
+.next-btn.show{display:block;animation:slide-in .3s ease;}
+.next-btn:hover{transform:translateY(-2px);}
+
+/* ── RESULT ── */
+#resultScreen{padding:1.5rem 1.5rem 6rem;gap:1.2rem;}
+.result-score-wrap{text-align:center;}
+.result-grade{font-size:4.5rem;}
+.result-pts{font-size:2.8rem;font-weight:900;color:var(--gold);}
+.result-label{color:var(--muted);font-size:.88rem;}
+.result-stars{font-size:1.8rem;letter-spacing:.2rem;}
+.result-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;width:100%;max-width:480px;}
+.r-stat{background:var(--panel);border:1px solid var(--border);border-radius:1rem;padding:.9rem;text-align:center;}
+.r-stat .n{font-size:1.8rem;font-weight:700;}
+.r-stat .l{font-size:.72rem;color:var(--muted);}
+.r-stat.g .n{color:var(--green);}
+.r-stat.r .n{color:var(--red);}
+.r-stat.b .n{color:var(--accent2);}
+.wrong-list{width:100%;max-width:480px;}
+.wrong-list h3{font-size:.95rem;font-weight:700;margin-bottom:.6rem;color:var(--red);}
+.wrong-item{background:var(--panel);border:1px solid var(--border);border-radius:.75rem;padding:.9rem;margin-bottom:.5rem;border-left:3px solid var(--red);}
+.wrong-item .wterm{font-weight:700;}
+.wrong-item .wdesc{font-size:.8rem;color:var(--muted);margin-top:.2rem;line-height:1.5;}
+.result-actions{display:flex;gap:.8rem;flex-wrap:wrap;width:100%;max-width:480px;}
+.result-btn{flex:1;min-width:120px;background:var(--panel);border:1px solid var(--border);border-radius:1rem;padding:.85rem;font-size:.9rem;font-weight:600;color:var(--text);cursor:pointer;transition:all .2s;}
+.result-btn:hover{border-color:var(--accent);background:var(--card);}
+.result-btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:#fff;}
+.result-btn.primary:hover{transform:translateY(-2px);}
+
+/* unlocked badge notification */
+.badge-notif{background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(124,58,237,.2));border:1px solid var(--gold);border-radius:1rem;padding:1rem;width:100%;max-width:480px;animation:slide-in .4s ease;}
+.badge-notif h4{color:var(--gold);font-size:.8rem;margin-bottom:.3rem;}
+.badge-notif .badge-list{display:flex;gap:.5rem;flex-wrap:wrap;}
+.badge-chip{background:var(--card);border:1px solid var(--gold);border-radius:.5rem;padding:.3rem .6rem;font-size:.82rem;}
+
+/* ── ACHIEVEMENTS ── */
+#achievementsScreen{padding:1.5rem 1.5rem 6rem;gap:1.2rem;}
+.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.8rem;width:100%;max-width:520px;}
+.ach-card{background:var(--panel);border:1px solid var(--border);border-radius:1rem;padding:1rem;text-align:center;transition:all .2s;}
+.ach-card.unlocked{border-color:var(--gold);background:rgba(245,158,11,.07);}
+.ach-card .ach-icon{font-size:2.2rem;margin-bottom:.4rem;filter:grayscale(1);opacity:.4;}
+.ach-card.unlocked .ach-icon{filter:none;opacity:1;}
+.ach-card .ach-name{font-size:.82rem;font-weight:700;}
+.ach-card .ach-desc{font-size:.72rem;color:var(--muted);margin-top:.2rem;line-height:1.4;}
+.ach-card.unlocked .ach-name{color:var(--gold);}
+.ach-progress{font-size:.82rem;color:var(--muted);text-align:center;}
+
+/* ── DAILY ── */
+#dailyScreen{padding:1.5rem 1.5rem 6rem;gap:1rem;}
+.daily-header-big{text-align:center;}
+.daily-header-big h2{font-size:1.8rem;font-weight:900;}
+.daily-header-big .date-label{color:var(--muted);font-size:.88rem;margin-top:.3rem;}
+.streak-display{background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(249,115,22,.15));border:1px solid var(--gold);border-radius:1.2rem;padding:1.2rem;text-align:center;width:100%;max-width:480px;}
+.streak-fire{font-size:3rem;}
+.streak-num{font-size:2.5rem;font-weight:900;color:var(--gold);}
+.streak-txt{color:var(--muted);font-size:.85rem;margin-top:.2rem;}
+
+/* ── STORY ── */
+#storySelectScreen{padding:1.5rem 1.5rem 6rem;gap:1.2rem;}
+.story-cards{display:flex;flex-direction:column;gap:1rem;width:100%;max-width:520px;}
+.story-ch-card{background:var(--panel);border:1px solid var(--border);border-radius:1.2rem;overflow:hidden;cursor:pointer;transition:all .2s;}
+.story-ch-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 20px rgba(124,58,237,.25);}
+.story-ch-card.locked{opacity:.5;cursor:default;}
+.story-ch-card:hover.locked{transform:none;box-shadow:none;}
+.story-ch-banner{padding:1.2rem;display:flex;align-items:center;gap:1rem;}
+.story-ch-art{font-size:3rem;}
+.story-ch-info h3{font-size:1.1rem;font-weight:700;}
+.story-ch-info p{font-size:.8rem;color:var(--muted);margin-top:.2rem;}
+.story-progress-bar{height:4px;background:var(--border);}
+.story-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s;}
+
+#storyEpisodeScreen{padding:1.5rem;gap:1rem;}
+.story-panel{background:var(--panel);border:1px solid var(--border);border-radius:1.2rem;padding:1.4rem;width:100%;max-width:600px;}
+.story-panel .ep-title{font-size:.78rem;color:var(--accent2);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;}
+.story-panel .ep-art{font-size:2.5rem;margin-bottom:.8rem;display:block;}
+.story-panel .ep-text{font-size:.95rem;line-height:1.8;color:var(--text);}
+.story-q-label{font-size:.78rem;color:var(--gold);font-weight:600;text-transform:uppercase;letter-spacing:1px;width:100%;max-width:600px;}
+.story-continue-btn{background:linear-gradient(135deg,var(--gold),#f97316);border:none;border-radius:1rem;padding:1rem 2rem;font-size:1rem;font-weight:700;color:#fff;cursor:pointer;width:100%;max-width:600px;box-shadow:0 4px 20px rgba(245,158,11,.3);transition:all .2s;}
+.story-continue-btn:hover{transform:translateY(-2px);}
+.ep-nav{display:flex;gap:.8rem;width:100%;max-width:600px;}
+.ep-dot{width:10px;height:10px;border-radius:50%;background:var(--border);transition:background .3s;}
+.ep-dot.done{background:var(--green);}
+.ep-dot.active{background:var(--accent2);}
+
+/* ── FLASHCARD ── */
+#flashcardScreen{padding:1rem 1rem 5rem;gap:1rem;}
+.fc-progress{font-size:.82rem;color:var(--muted);text-align:center;}
+.fc-progress-bar{width:100%;max-width:420px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.fc-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s;}
+.fc-stage{width:100%;max-width:420px;display:flex;justify-content:center;perspective:1000px;min-height:280px;align-items:center;}
+.fc-card{width:100%;min-height:260px;position:relative;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1);cursor:pointer;user-select:none;}
+.fc-card.flipped{transform:rotateY(180deg);}
+.fc-face{position:absolute;inset:0;border-radius:1.4rem;padding:1.8rem;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;backface-visibility:hidden;-webkit-backface-visibility:hidden;}
+.fc-front{background:var(--panel);border:1.5px solid var(--accent);}
+.fc-back{background:var(--card);border:1.5px solid var(--accent2);transform:rotateY(180deg);}
+.fc-ch{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:.6rem;}
+.fc-term{font-size:1.6rem;font-weight:800;color:var(--text);}
+.fc-hint{font-size:.75rem;color:var(--muted);margin-top:1rem;}
+.fc-desc{font-size:.92rem;line-height:1.7;color:var(--text);}
+.fc-example{font-size:.78rem;color:var(--gold);margin-top:.8rem;padding-top:.8rem;border-top:1px solid var(--border);text-align:left;width:100%;}
+.fc-swipe-hint{display:flex;gap:1.5rem;justify-content:center;font-size:.8rem;color:var(--muted);}
+.fc-btns{display:flex;gap:1rem;width:100%;max-width:420px;}
+.fc-btn{flex:1;padding:1rem;border-radius:1rem;border:none;font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.fc-btn.not-yet{background:rgba(239,68,68,.15);border:1.5px solid var(--red);color:var(--red);}
+.fc-btn.not-yet:hover{background:rgba(239,68,68,.25);}
+.fc-btn.got-it{background:rgba(16,185,129,.15);border:1.5px solid var(--green);color:var(--green);}
+.fc-btn.got-it:hover{background:rgba(16,185,129,.25);}
+.fc-btns-hidden{display:none;}
+.fc-result{text-align:center;width:100%;max-width:420px;}
+.fc-result .big{font-size:4rem;}
+.fc-result h2{font-size:1.5rem;font-weight:800;margin:.5rem 0;}
+.fc-result p{color:var(--muted);font-size:.88rem;}
+
+/* ── ANALYSIS ── */
+#analysisScreen{padding:1rem 1rem 5rem;gap:1.2rem;}
+.analysis-card{background:var(--panel);border:1px solid var(--border);border-radius:1rem;padding:1.2rem;width:100%;max-width:500px;}
+.analysis-card h3{font-size:.82rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:1rem;}
+.bar-row{margin-bottom:.9rem;}
+.bar-label{display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:.3rem;}
+.bar-label span:last-child{color:var(--muted);}
+.bar-bg{height:10px;background:var(--border);border-radius:5px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:5px;transition:width .6s ease;background:linear-gradient(90deg,var(--accent),var(--accent2));}
+.bar-fill.low{background:linear-gradient(90deg,var(--red),var(--gold));}
+.miss-item{display:flex;align-items:center;gap:.8rem;padding:.6rem 0;border-bottom:1px solid var(--border);}
+.miss-item:last-child{border-bottom:none;}
+.miss-rank{font-size:1.2rem;font-weight:800;width:2rem;text-align:center;color:var(--red);}
+.miss-info .term{font-weight:700;font-size:.9rem;}
+.miss-info .cnt{font-size:.75rem;color:var(--muted);}
+.analysis-empty{color:var(--muted);font-size:.88rem;text-align:center;padding:1rem;}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(10,10,26,.95);backdrop-filter:blur(10px);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:.5rem 0 max(.5rem, env(safe-area-inset-bottom));}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:.2rem;padding:.4rem .8rem;cursor:pointer;border:none;background:none;color:var(--muted);font-size:.65rem;transition:color .2s;min-width:60px;}
+.nav-item.active{color:var(--accent2);}
+.nav-item .nav-icon{font-size:1.4rem;}
+
+/* ── MOBILE IMPROVEMENTS ── */
+@media(max-width:480px){
+  body{font-size:15px;}
+  .logo-title{font-size:1.7rem;}
+  .stats-bar{gap:.7rem;padding:.7rem 1rem;}
+  .stat-num{font-size:1.3rem;}
+  .menu-btn{padding:.9rem 1rem;}
+  .ans-btn{min-height:72px;font-size:.95rem;padding:1rem;}
+  .q-text{font-size:1.05rem;}
+  .q-card{padding:1.1rem;}
+  .next-btn{font-size:1rem;padding:1rem;}
+  .result-btn{min-height:52px;font-size:.95rem;}
+  .fc-term{font-size:1.4rem;}
+  .fc-desc{font-size:.88rem;}
+  #homeScreen,#flashcardScreen,#analysisScreen{padding-bottom:5rem;}
+  #quizScreen,#resultScreen{padding-bottom:5rem;}
+}
+@media(min-width:481px){
+  .bottom-nav{max-width:640px;left:50%;transform:translateX(-50%);border-radius:1rem 1rem 0 0;border-left:1px solid var(--border);border-right:1px solid var(--border);}
+}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<div class="screen-flash" id="flashEl"></div>
+<div class="feedback-overlay" id="feedbackEl"><div class="feedback-big" id="feedbackText"></div></div>
+
+<!-- HOME -->
+<div class="screen active" id="homeScreen">
+  <div style="text-align:center;padding-top:1rem">
+    <div class="logo-title">⚡ G検定クイズ</div>
+    <div class="logo-sub">AI・機械学習・ディープラーニングを完全制覇！</div>
+  </div>
+  <div class="stats-bar">
+    <div class="stat-item"><div class="stat-num" id="statTotal">0</div><div class="stat-label">総解答</div></div>
+    <div class="stat-item"><div class="stat-num" id="statAcc">-</div><div class="stat-label">正解率</div></div>
+    <div class="stat-item"><div class="stat-num" id="statStreak">0</div><div class="stat-label">最大コンボ</div></div>
+    <div class="stat-item"><div class="stat-num" id="statMastered">0</div><div class="stat-label">習得単語</div></div>
+  </div>
+  <div class="daily-card" onclick="startDaily()" id="dailyCardEl">
+    <div class="daily-header">
+      <div class="daily-title">☀️ 今日のデイリーチャレンジ</div>
+      <div class="streak-badge" id="homeStreakBadge">🔥 0日</div>
+    </div>
+    <div class="daily-desc" id="dailyDescEl">今日の5問に挑戦しよう！</div>
+  </div>
+  <div class="menu-grid">
+    <button class="menu-btn" onclick="showSettings('normal')"><span class="icon">🎯</span><div><div>ノーマルクイズ</div><div class="desc">全単語からランダム出題。間違いは多く出題される</div></div></button>
+    <button class="menu-btn" onclick="showSettings('review')"><span class="icon">🔥</span><div><div>苦手集中モード <span class="badge" id="wrongBadge">0</span></div><div class="desc">間違えた単語だけを集中復習</div></div></button>
+    <button class="menu-btn" onclick="showStorySelect()"><span class="icon">📖</span><div><div>ストーリーモード</div><div class="desc">RPG風にAIの歴史を旅しながら学ぶ</div></div></button>
+    <button class="menu-btn" onclick="showSettings('chapter')"><span class="icon">📚</span><div><div>チャプター別</div><div class="desc">Chapter 1〜3 から出題範囲を選ぶ</div></div></button>
+    <button class="menu-btn" onclick="showFlashcards()"><span class="icon">🃏</span><div><div>フラッシュカード</div><div class="desc">通勤中にサッと復習。スワイプで覚えた／まだを仕分け</div></div></button>
+    <button class="menu-btn" onclick="showAnalysis()"><span class="icon">📊</span><div><div>弱点分析</div><div class="desc">チャプター別正解率・よく間違える単語TOP8</div></div></button>
+    <button class="menu-btn" onclick="showAchievements()"><span class="icon">🏆</span><div><div>実績・バッジ <span id="achCountEl"></span></div><div class="desc">獲得したバッジを確認する</div></div></button>
+    <div style="display:flex;gap:.75rem;width:100%">
+      <button class="menu-btn" style="flex:1" onclick="exportProgress()"><span class="icon">📤</span><div><div>エクスポート</div><div class="desc">進捗をファイルに保存</div></div></button>
+      <button class="menu-btn" style="flex:1" onclick="importProgress()"><span class="icon">📥</span><div><div>インポート</div><div class="desc">別端末の進捗を引き継ぐ</div></div></button>
+    </div>
+    <button class="menu-btn danger" onclick="confirmReset()"><span class="icon">🗑️</span><div><div>データリセット</div><div class="desc">学習履歴をすべてリセット</div></div></button>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="screen" id="settingsScreen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="showHome()">← もどる</button>
+    <div class="screen-title" id="settingsTitle">設定</div>
+  </div>
+  <div class="settings-card" id="chapterCard" style="display:none">
+    <h3>出題チャプター（複数可）</h3>
+    <div class="chip-group">
+      <div class="chip multi active" data-ch="1" onclick="toggleChapter(this)">Chapter 1<br><small>人工知能</small></div>
+      <div class="chip multi active" data-ch="2" onclick="toggleChapter(this)">Chapter 2<br><small>機械学習</small></div>
+      <div class="chip multi active" data-ch="3" onclick="toggleChapter(this)">Chapter 3<br><small>ディープラーニング</small></div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <h3>出題数</h3>
+    <div class="chip-group" id="countChips">
+      <div class="chip active" data-count="10" onclick="selectChip(this,'countChips')">10問</div>
+      <div class="chip" data-count="20" onclick="selectChip(this,'countChips')">20問</div>
+      <div class="chip" data-count="30" onclick="selectChip(this,'countChips')">30問</div>
+      <div class="chip" data-count="999" onclick="selectChip(this,'countChips')">全問</div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <h3>出題タイプ</h3>
+    <div class="chip-group" id="typeChips">
+      <div class="chip active" data-type="mixed" onclick="selectChip(this,'typeChips')">ミックス</div>
+      <div class="chip" data-type="term2desc" onclick="selectChip(this,'typeChips')">単語→説明</div>
+      <div class="chip" data-type="desc2term" onclick="selectChip(this,'typeChips')">説明→単語</div>
+    </div>
+  </div>
+  <div class="settings-card">
+    <h3>タイマー</h3>
+    <div class="chip-group" id="timerChips">
+      <div class="chip" data-timer="0" onclick="selectChip(this,'timerChips')">なし</div>
+      <div class="chip active" data-timer="30" onclick="selectChip(this,'timerChips')">30秒</div>
+      <div class="chip" data-timer="20" onclick="selectChip(this,'timerChips')">20秒（難）</div>
+      <div class="chip" data-timer="10" onclick="selectChip(this,'timerChips')">10秒（鬼）</div>
+    </div>
+  </div>
+  <button class="start-big" onclick="startQuiz()">🚀 クイズスタート！</button>
+</div>
+
+<!-- QUIZ -->
+<div class="screen" id="quizScreen">
+  <div class="quiz-topbar">
+    <div class="quiz-score">⭐ <span id="scoreEl">0</span></div>
+    <div class="combo-badge" id="comboBadge">🔥 x<span id="comboEl">1</span></div>
+    <div class="quiz-progress"><span id="qNum">1</span>/<span id="qTotal">10</span></div>
+  </div>
+  <div class="timer-wrap"><div class="timer-bar-bg"><div class="timer-bar" id="timerBar"></div></div></div>
+  <div class="q-card">
+    <div class="q-badge" id="qBadge"></div>
+    <div class="q-text" id="qText"></div>
+    <div class="q-chapter" id="qChapter"></div>
+  </div>
+  <div class="answers" id="answersEl"></div>
+  <div class="explanation" id="explanationEl">
+    <h4>💡 解説</h4>
+    <div class="ex-text" id="exText"></div>
+    <div class="ex-example" id="exExample"></div>
+  </div>
+  <button class="next-btn" id="nextBtn" onclick="nextQuestion()">次の問題へ →</button>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="resultScreen">
+  <div class="result-score-wrap">
+    <div class="result-grade" id="resultGrade"></div>
+    <div class="result-stars" id="resultStars"></div>
+    <div class="result-pts" id="resultPts"></div>
+    <div class="result-label">ポイント</div>
+  </div>
+  <div class="result-stats">
+    <div class="r-stat g"><div class="n" id="resCorrect">0</div><div class="l">正解</div></div>
+    <div class="r-stat r"><div class="n" id="resWrong">0</div><div class="l">不正解</div></div>
+    <div class="r-stat b"><div class="n" id="resCombo">0</div><div class="l">最大コンボ</div></div>
+  </div>
+  <div class="badge-notif" id="newBadgesEl" style="display:none">
+    <h4>🏆 新しいバッジ獲得！</h4>
+    <div class="badge-list" id="newBadgesList"></div>
+  </div>
+  <div class="wrong-list" id="wrongListEl"></div>
+  <div class="result-actions">
+    <button class="result-btn" onclick="showHome()">🏠 ホーム</button>
+    <button class="result-btn" onclick="retryWrong()" id="retryWrongBtn">🔥 苦手復習</button>
+    <button class="result-btn primary" onclick="retryQuiz()">🔄 もう一度</button>
+  </div>
+</div>
+
+<!-- ACHIEVEMENTS -->
+<div class="screen" id="achievementsScreen">
+  <div class="screen-header" style="max-width:520px;width:100%">
+    <button class="back-btn" onclick="showHome()">← もどる</button>
+    <div class="screen-title">🏆 実績・バッジ</div>
+  </div>
+  <div class="ach-progress" id="achProgressEl"></div>
+  <div class="ach-grid" id="achGridEl"></div>
+</div>
+
+<!-- DAILY -->
+<div class="screen" id="dailyScreen">
+  <div class="screen-header" style="max-width:480px;width:100%">
+    <button class="back-btn" onclick="showHome()">← もどる</button>
+    <div class="screen-title">☀️ デイリーチャレンジ</div>
+  </div>
+  <div class="daily-header-big">
+    <div class="date-label" id="dailyDateLabel"></div>
+  </div>
+  <div class="streak-display">
+    <div class="streak-fire">🔥</div>
+    <div class="streak-num" id="streakNumEl">0</div>
+    <div class="streak-txt">日連続チャレンジ中！</div>
+  </div>
+  <button class="start-big" onclick="launchDailyQuiz()" id="dailyStartBtn">今日の5問に挑戦！</button>
+  <div style="color:var(--green);font-weight:700;display:none;text-align:center;padding:1rem" id="dailyDoneMsg">✅ 今日のチャレンジ完了！明日また来てね😊</div>
+</div>
+
+<!-- STORY SELECT -->
+<div class="screen" id="storySelectScreen">
+  <div class="screen-header" style="max-width:520px;width:100%">
+    <button class="back-btn" onclick="showHome()">← もどる</button>
+    <div class="screen-title">📖 ストーリーモード</div>
+  </div>
+  <div style="color:var(--muted);font-size:.85rem;text-align:center;max-width:480px">クイズに答えながらAIの歴史を旅しよう！</div>
+  <div class="story-cards" id="storyCardsEl"></div>
+</div>
+
+<!-- STORY EPISODE -->
+<div class="screen" id="storyEpisodeScreen">
+  <div class="screen-header" style="max-width:600px;width:100%">
+    <button class="back-btn" onclick="showStorySelect()">← もどる</button>
+    <div class="screen-title" id="storyEpTitle"></div>
+  </div>
+  <div class="ep-nav" id="epNavEl"></div>
+  <!-- story panel or quiz -->
+  <div id="storyContent"></div>
+</div>
+
+<!-- FLASHCARD -->
+<div class="screen" id="flashcardScreen">
+  <div class="screen-header" style="max-width:420px;width:100%">
+    <button class="back-btn" onclick="showHome()">← もどる</button>
+    <div class="screen-title">🃏 フラッシュカード</div>
+  </div>
+  <div class="fc-progress" id="fcProgress">カードを選択中...</div>
+  <div class="fc-progress-bar"><div class="fc-progress-fill" id="fcProgressFill" style="width:0%"></div></div>
+  <div class="fc-stage">
+    <div class="fc-card" id="fcCard" onclick="flipCard()">
+      <div class="fc-face fc-front">
+        <div class="fc-ch" id="fcChapter"></div>
+        <div class="fc-term" id="fcTerm"></div>
+        <div class="fc-hint">タップして裏を見る 👆</div>
+      </div>
+      <div class="fc-face fc-back">
+        <div class="fc-desc" id="fcDesc"></div>
+        <div class="fc-example" id="fcExample"></div>
+      </div>
+    </div>
+  </div>
+  <div class="fc-swipe-hint" id="fcSwipeHint" style="display:none">
+    <span>← まだ</span><span>覚えた →</span>
+  </div>
+  <div class="fc-btns fc-btns-hidden" id="fcBtns">
+    <button class="fc-btn not-yet" onclick="fcAnswer(false)">😅 まだ</button>
+    <button class="fc-btn got-it" onclick="fcAnswer(true)">✅ 覚えた！</button>
+  </div>
+  <div class="fc-result" id="fcResult" style="display:none"></div>
+  <!-- chapter filter -->
+  <div class="settings-card" id="fcSettings" style="max-width:420px;width:100%">
+    <h3>出題チャプター</h3>
+    <div class="chip-group">
+      <div class="chip multi active" data-ch="1" onclick="toggleFcChapter(this)">Ch1</div>
+      <div class="chip multi active" data-ch="2" onclick="toggleFcChapter(this)">Ch2</div>
+      <div class="chip multi active" data-ch="3" onclick="toggleFcChapter(this)">Ch3</div>
+      <div class="chip multi active" data-ch="all" onclick="toggleFcChapter(this)">苦手のみ</div>
+    </div>
+    <button class="start-big" style="margin-top:1rem" onclick="startFlashcards()">🃏 スタート</button>
+  </div>
+</div>
+
+<!-- ANALYSIS -->
+<div class="screen" id="analysisScreen">
+  <div class="screen-header" style="max-width:500px;width:100%">
+    <button class="back-btn" onclick="showHome()">← もどる</button>
+    <div class="screen-title">📊 弱点分析</div>
+  </div>
+  <div id="analysisContent" style="width:100%;max-width:500px;display:flex;flex-direction:column;gap:1rem;padding-bottom:1rem"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav" id="bottomNav">
+  <button class="nav-item active" id="nav-home" onclick="showHome()"><span class="nav-icon">🏠</span>ホーム</button>
+  <button class="nav-item" id="nav-daily" onclick="startDaily()"><span class="nav-icon">☀️</span>デイリー</button>
+  <button class="nav-item" id="nav-fc" onclick="showFlashcards()"><span class="nav-icon">🃏</span>カード</button>
+  <button class="nav-item" id="nav-analysis" onclick="showAnalysis()"><span class="nav-icon">📊</span>分析</button>
+</nav>
+
+<script>
+// ════════════ WORD DATA ════════════
+const WORDS = [
+  {id:'c1_01',ch:1,term:'ダートマス会議',desc:'1956年に開催され、「人工知能（AI）」という言葉が初めて定義された歴史的な会議。',example:'🎓 AIという言葉が生まれた出発点。マッカーシーらが「機械に知能を持たせよう！」と集まった会議です。'},
+  {id:'c1_02',ch:1,term:'ルールベースAI',desc:'人間があらかじめ設定した動作ルールに従って行動するAI。',example:'🎓 「もし熱が37度以上なら解熱剤」のように、人間がルールを全部書いてあげる仕組みです。'},
+  {id:'c1_03',ch:1,term:'AI効果',desc:'AIの仕組みを知ると「人工知能ではなく単なる自動化に過ぎない」と思ってしまう人間の心理のこと。',example:'🎓 「チェスで勝っても、ルール通りに動いてるだけ」と思ってしまう現象です。'},
+  {id:'c1_04',ch:1,term:'第一次AIブーム',desc:'1950年代後半〜1960年代。定義された問題は解けたが、実世界の複雑な問題には対応できなかった。',example:'🎓 「迷路は解けるけど料理はできない」という限界がわかりブームが終わりました。'},
+  {id:'c1_05',ch:1,term:'第二次AIブーム',desc:'1980年代。専門知識を大量に蓄積したエキスパートシステムが普及したが、知識獲得のボトルネックによりブームが終わった。',example:'🎓 お医者さんの知識を全部コピーしようとしたけど、膨大すぎて管理できなくなった時代です。'},
+  {id:'c1_06',ch:1,term:'知識獲得のボトルネック',desc:'エキスパートシステムで、膨大な専門知識を矛盾なく整理・管理することが非常に困難だった問題。',example:'🎓 「専門家の頭の中の知識を全部テキストにするのは大変すぎる！」という壁です。'},
+  {id:'c1_07',ch:1,term:'第三次AIブーム',desc:'2000年以降、ビッグデータ時代にディープラーニングが大きく発展したブーム。',example:'🎓 「大量のデータ＋ディープラーニング」でAIが画像や言語を理解できるようになった時代です。'},
+  {id:'c1_08',ch:1,term:'DENDRAL',desc:'有機化合物の分子構造を推定するエキスパートシステム。第二次AIブームの代表例。',example:'🎓 化学者の知識をコンピュータに詰め込んで、分子の形を当てさせた初期AIです。'},
+  {id:'c1_09',ch:1,term:'MYCIN',desc:'感染症を専門医のように診察・診断するエキスパートシステム。',example:'🎓 「熱・症状を入力すると感染症を診断してくれる」コンピュータ医師のようなシステムです。'},
+  {id:'c1_10',ch:1,term:'CASNET',desc:'緑内障の診断支援を行うエキスパートシステム。',example:'🎓 眼科専門医の知識をコンピュータに覚えさせた、目の病気診断システムです。'},
+  {id:'c1_11',ch:1,term:'探索',desc:'初期状態から目的に至るまでの道筋を場合分けや試行錯誤しながら最適解を探すこと。',example:'🎓 迷路で「右に行く？左に行く？」と試しながら出口を探すのと同じです。'},
+  {id:'c1_12',ch:1,term:'探索木',desc:'情報の場合分けを木（ツリー）構造で表現し、効率的な探索の道筋を探すための手段。',example:'🎓 「もし右なら…もし左なら…」という選択肢を枝分かれしながら木の形で表したものです。'},
+  {id:'c1_13',ch:1,term:'幅優先探索',desc:'同じ階層をしらみつぶしに探してから次の階層へ進む探索法。最短距離の解が必ず見つかるが、メモリ消費が大きい。',example:'🎓 迷路で「1歩目の全ルートを試してから2歩目」と進む、確実だけど重い探し方です。'},
+  {id:'c1_14',ch:1,term:'深さ優先探索',desc:'一方向に深く進み、行き詰まったら一歩戻って別ルートを探す探索法。',example:'🎓 「とにかく右！行き止まりになったら戻る」という探し方です。'},
+  {id:'c1_15',ch:1,term:'ELIZA（イライザ）',desc:'1964年開発の対話システム。知識は持たないがコンピュータと会話している感覚を実現した。',example:'🎓 チャットボットの祖先。賢くはないけど会話できる！'},
+  {id:'c1_16',ch:1,term:'Cycプロジェクト',desc:'人間が持つ「常識のすべて」をコンピュータに取り入れることを目指した未完成のシステム（現在も進行中）。',example:'🎓 「空は青い」「火は熱い」など人間の常識を全部教えようとした超巨大プロジェクトです。'},
+  {id:'c1_17',ch:1,term:'意味ネットワーク',desc:'概念間の関係性（is-a, part-of）をラベル付きネットワークで表したもの。下位概念が上位概念の属性を引き継ぐ。',example:'🎓 「犬 is-a 動物」「しっぽ part-of 犬」のように、単語の関係を地図みたいに描いたものです。'},
+  {id:'c1_18',ch:1,term:'オントロジー',desc:'知識や概念を共有・活用しやすいように体系的に記述する学術分野・手法。',example:'🎓 「概念の辞典」を作るような作業。コンピュータが言葉の意味を理解しやすくする仕組みです。'},
+  {id:'c1_19',ch:1,term:'セマンティックウェブ',desc:'オントロジーを活用してウェブ上に構築された意味ネットワーク。LOD（Linked Open Data）が主体。',example:'🎓 ウェブページの情報に「これは人の名前」「これは場所」などの意味タグをつけて、コンピュータが理解できるネットです。'},
+  {id:'c1_20',ch:1,term:'弱いAI（特化型AI）',desc:'特定のタスクに特化して性能を発揮するAI。現代のAIはすべてこれ。',example:'🎓 将棋は超強いけど料理はできない、そんな「一芸AI」です。'},
+  {id:'c1_21',ch:1,term:'強いAI（汎用型AI）',desc:'幅広いタスクで人間のような自意識と自律性を持ち、臨機応変に知的活動を行うAI。まだ存在しない。',example:'🎓 「ドラえもん」みたいに何でもできる万能AI。現代の技術ではまだ実現できていません。'},
+  {id:'c1_22',ch:1,term:'トイ・プロブレム',desc:'ルールが明確な問題（パズル・迷路・チェスなど）は解けても、要件が曖昧な実世界の問題に対応できないというAIの限界。',example:'🎓 「チェスは解けるけど、友達と仲直りする方法は分からない」というAIの苦手な部分です。'},
+  {id:'c1_23',ch:1,term:'チューリングテスト',desc:'AIに人間らしい知能があるかを判断する実験手法。会話相手が人間かコンピュータか判断できなければAIが合格。',example:'🎓 「隠れた相手と会話して、人間かAIか当てられなければAIの勝ち！」という知能テストです。'},
+  {id:'c1_24',ch:1,term:'身体性',desc:'物理的な身体があり、環境との相互作用を通じてはじめて知能の構築が可能であるという考え方。',example:'🎓 「転んで痛い」「触って冷たい」などの体験がないと、本当の知能は育たないという考えです。'},
+  {id:'c1_25',ch:1,term:'シンボル・グラウンディング問題',desc:'コンピュータは知識を記号間の相対関係でとらえるため、記号と実世界を結びつけられないという問題。',example:'🎓 「りんご＝赤くて丸い果物」と知っていても、AIは本物のリンゴを見たことがないので「本当の意味」が分からない問題です。'},
+  {id:'c1_26',ch:1,term:'フレーム問題',desc:'AIは有限な情報処理能力しか持たないため、現実世界のすべての問題に対処できないという問題。組み合わせが爆発的に増える。',example:'🎓 「爆弾を持ったロボット」が無限に考えすぎて動けなくなる問題です。'},
+  {id:'c1_27',ch:1,term:'シンギュラリティ（技術的特異点）',desc:'AIが自ら知能を生み出せるようになり、その能力が人類の知能の総和を超える技術的転換点。',example:'🎓 AIが自分よりも賢いAIを作れるようになる瞬間。2045年頃と予測する人もいます。'},
+  {id:'c1_28',ch:1,term:'ディープラーニング',desc:'機械学習の一手法。特徴量をデータから自動的に抽出できるため、画像やテキストなどの非構造化データの解析も得意とする。',example:'🎓 「猫の写真を大量に見せるだけで、AIが自動で耳・ひげ・目といった特徴を学ぶ」のがディープラーニングの凄さです。'},
+  {id:'c1_29',ch:1,term:'推論',desc:'既知の知識をもとに、未知の出来事や問題を推測すること。',example:'🎓 「道が濡れている→昨日雨が降ったはず」のように、知っている知識から未知の事実を導き出す思考プロセスです。'},
+  {id:'c1_30',ch:1,term:'ヘビーウェイトオントロジー',desc:'厳密で哲学的な記述を重視するオントロジーの種類。概念の定義を論理的に厳密に行う。',example:'🎓 「生き物とは何か」を哲学的・論理的に定義しようとする、学術的で難解なアプローチです。'},
+  {id:'c1_31',ch:1,term:'ライトウェイトオントロジー',desc:'実用性を重視し、情報をコンピュータに取り入れて自動的に概念間の関係性を見つけるオントロジー。IBMのワトソンがクイズ番組Jeopardyで活用。',example:'🎓 「とにかく使えること」を優先した軽めのオントロジー。IBMのワトソンがクイズ番組で優勝するのに使われました。'},
+  {id:'c2_01',ch:2,term:'教師あり学習',desc:'特徴量と正解ラベルのセットを使い、特徴量と正解を結ぶ関係性を見出す機械学習手法。分類・回帰に使う。',example:'🎓 「メールの文章（特徴量）＋スパムかどうか（正解ラベル）」を大量に見せて、スパム判定を学ばせる方法です。'},
+  {id:'c2_02',ch:2,term:'教師なし学習',desc:'正解ラベルなしで、データが持つ構造やパターンをクラスタリング・次元削減などで見出す機械学習手法。',example:'🎓 「答えを教えずに、似たお客さんをグループ分けする」ような学習方法です。'},
+  {id:'c2_03',ch:2,term:'強化学習',desc:'エージェントが環境の中で最大の報酬を得られるよう、最適な行動を学習する手法。',example:'🎓 「ゲームをクリアするとご褒美（報酬）」のように、試行錯誤しながら攻略法を覚えるAIです。'},
+  {id:'c2_04',ch:2,term:'半教師あり学習',desc:'一部のデータのみに正解ラベルが付与されており、それを使って残りのデータにラベルを予測する手法。',example:'🎓 「100枚の写真のうち10枚だけ「犬/猫」と教えたら、残り90枚を自動で分類する」方法です。'},
+  {id:'c2_05',ch:2,term:'特徴量',desc:'予測の手がかりとなるデータの特徴を定量的に表した変数。',example:'🎓 家の値段を予測するなら「広さ・築年数・駅からの距離」などが特徴量です。'},
+  {id:'c2_06',ch:2,term:'ラベルエンコーディング',desc:'カテゴリ文字列を1つの数値にマッピングする手法。例：「犬→0, 猫→1, 鳥→2」。',example:'🎓 「東京→0、大阪→1、名古屋→2」のように、文字を数字に置き換えるシンプルな変換です。'},
+  {id:'c2_07',ch:2,term:'One-Hotエンコーディング',desc:'カテゴリごとに列を作り、該当するものだけ1、それ以外を0にする数値化手法。',example:'🎓 「東京→[1,0,0]、大阪→[0,1,0]」のように、一つだけ1にするフラグ方式です。'},
+  {id:'c2_08',ch:2,term:'回帰補完',desc:'欠損している特徴量と他の特徴量の間に相関が強い場合、非欠損部分を学習データとして欠損部分を回帰で予測する手法。',example:'🎓 「身長が空白の人に対して体重から身長を予測して埋める」ような方法です。'},
+  {id:'c2_09',ch:2,term:'正規化（Min-Maxスケーリング）',desc:'（データの値 − 最小値）÷（最大値 − 最小値）でデータを0〜1の範囲に収める前処理。外れ値に弱い。',example:'🎓 テストの点数を「0点が0.0、100点が1.0」のように割合に直すイメージ。'},
+  {id:'c2_10',ch:2,term:'標準化（Z-score）',desc:'平均が0、標準偏差が1になるようにデータを変換する前処理。外れ値に強く、機械学習で広く使われる。',example:'🎓 偏差値のように「平均からどれだけ離れているか」で表す方法。外れ値があっても他のデータへの影響が少ない。'},
+  {id:'c2_11',ch:2,term:'過学習（オーバーフィッティング）',desc:'モデルを訓練データに合わせすぎて、未知のテストデータへの汎化性能が低くなること。',example:'🎓 「練習問題を丸暗記したけど、本番の初見問題がまったく解けない」状態です。'},
+  {id:'c2_12',ch:2,term:'バイアスとバリアンス',desc:'バイアスは推定値と実測値の「ずれ（偏り）」、バリアンスは推定値の「ばらつき」。両者はトレードオフの関係。',example:'🎓 的の中心から外れた位置にばかり刺さる＝バイアス大。矢がバラバラに刺さる＝バリアンス大。'},
+  {id:'c2_13',ch:2,term:'線形回帰',desc:'説明変数（特徴量）に重み（係数）を掛けて足し算し、目的変数を予測するシンプルなモデル。',example:'🎓 「気温×係数 + 曜日×係数 + 定数 = アイスの売上予測」のような、足し算で答えを出す方法です。'},
+  {id:'c2_14',ch:2,term:'偏回帰係数',desc:'重回帰分析で、他の説明変数を固定したままその変数を1増やしたとき、目的変数がどれだけ変化するかを示す数値。',example:'🎓 「気温だけ1度上げたとき、アイスの売上が何個増えるか」を示す係数です。'},
+  {id:'c2_15',ch:2,term:'多重共線性',desc:'相関が高い説明変数同士を特徴量として組み合わせると、互いに干渉して精度が悪化する現象。',example:'🎓 「気温」と「真夏かどうか」は似た情報なので、両方使うとぐちゃぐちゃになります。'},
+  {id:'c2_16',ch:2,term:'ロジスティック回帰分析',desc:'説明変数をもとに事象が発生する確率を求める非線形回帰手法。確率で「分類」を行う。',example:'🎓 「このメールがスパムである確率は95%」のように、0〜1の確率を出して分類するモデルです。'},
+  {id:'c2_17',ch:2,term:'ソフトマックス関数',desc:'多クラス分類（複数の選択肢）に使う活性化関数。全出力の合計が1になる確率分布を出力する。',example:'🎓 「犬60%・猫30%・鳥10%」のように、複数のクラスへの確率を合計1で出す関数です。'},
+  {id:'c2_18',ch:2,term:'シグモイド関数',desc:'二値分類（2択）に使う活性化関数。出力は0〜1の範囲。S字の曲線を描く。',example:'🎓 「スパムかどうか」の2択で、確率を0〜1で出すS字型の関数です。'},
+  {id:'c2_19',ch:2,term:'正則化',desc:'損失関数に罰則項（ペナルティ項）を加えて最小化することで、過学習を抑制する手法。',example:'🎓 「複雑すぎるモデルに罰金を課す」ことで、シンプルで汎化しやすいモデルに誘導する工夫です。'},
+  {id:'c2_20',ch:2,term:'L1正則化（ラッソ回帰）',desc:'パラメータの絶対値の和をペナルティ項にする正則化手法。不要な特徴量の係数を0にする（スパース化）。',example:'🎓 「使えない特徴量の係数を完全にゼロにして切り捨てる」、取捨選択が得意な正則化です。'},
+  {id:'c2_21',ch:2,term:'L2正則化（リッジ回帰）',desc:'パラメータの二乗和をペナルティ項にする正則化手法。係数を小さくするが0にはしない。',example:'🎓 「全員の影響力を少し弱める」正則化。係数はゼロにならず全特徴量を少しずつ使い続けます。'},
+  {id:'c2_22',ch:2,term:'Elastic Net',desc:'L1正則化（ラッソ）とL2正則化（リッジ）を組み合わせたハイブリッドな正則化手法。',example:'🎓 ラッソとリッジの「いいとこ取り」。スパース化もしつつ、係数の安定性も確保できます。'},
+  {id:'c2_23',ch:2,term:'ホールドアウト法',desc:'データを固定の割合（例：8:2）で訓練データとテストデータに分割し、一度だけ精度を評価する方法。',example:'🎓 「問題集を最初と最後に分けて、最後の部分だけテストに使う」シンプルな評価方法です。'},
+  {id:'c2_24',ch:2,term:'交差検証法（K分割クロスバリデーション）',desc:'データをK個に分割し、毎回違う部分をテストデータにして精度評価をK回繰り返す方法。',example:'🎓 「問題集を5つに分けて、順番に違う部分をテストにして5回模試を受ける」方法です。'},
+  {id:'c2_25',ch:2,term:'混同行列（Confusion Matrix）',desc:'分類モデルの予測結果を正解・不正解ごとに表にまとめたもの。TP・TN・FP・FNで構成される。',example:'🎓 「病気あり→病気ありと判定（正解）」「病気なし→病気ありと判定（誤報）」などを表にした採点表です。'},
+  {id:'c2_26',ch:2,term:'正解率（Accuracy）',desc:'全データのうち正しく分類できた割合。(TP + TN) ÷ (TP + TN + FP + FN)で計算。',example:'🎓 「100件のメールのうち、スパム・正常を何件正確に判定できたか」の割合です。'},
+  {id:'c2_27',ch:2,term:'適合率（Precision）',desc:'陽性と予測したもののうち、実際に陽性だった割合。TP ÷ (TP + FP)。',example:'🎓 「スパムと言ったメールのうち、本当にスパムだった割合」。誤報を減らしたいときに重視。'},
+  {id:'c2_28',ch:2,term:'再現率（Recall）',desc:'実際に陽性のデータのうち、正しく陽性と予測できた割合。TP ÷ (TP + FN)。',example:'🎓 「本物のスパムのうち、ちゃんと見つけられた割合」。見逃しを減らしたいときに重視。'},
+  {id:'c2_29',ch:2,term:'F値（F-measure）',desc:'適合率と再現率の調和平均。F = 2 × Precision × Recall ÷ (Precision + Recall)。',example:'🎓 適合率と再現率のどちらも高くないと上がらない「総合点」です。'},
+  {id:'c2_30',ch:2,term:'ハイパーパラメータ',desc:'モデルの複雑さや学習の進行を制御するために、人間が学習前にあらかじめ設定する値。AIが自動で更新できない。',example:'🎓 「学習の速さ」「モデルの深さ」など、コーチが選手に事前に決める設定値です。'},
+  {id:'c2_31',ch:2,term:'バリデーションデータ',desc:'訓練データから一定量取り出して、ハイパーパラメータの調整に使う検証用データ。',example:'🎓 本番テスト（テストデータ）とは別に、練習のための「模試データ」です。'},
+  {id:'c2_32',ch:2,term:'グリッドサーチ',desc:'ハイパーパラメータの組み合わせを総当たりで試し、最適解を見つける手法。精度は高いが時間がかかる。',example:'🎓 「学習率×深さ」の全組み合わせを全部試す、力技な方法です。'},
+  {id:'c2_33',ch:2,term:'ランダムサーチ',desc:'指定した試行回数分だけランダムにハイパーパラメータの組み合わせを試す手法。グリッドサーチより高速。',example:'🎓 「組み合わせが多すぎるなら100回ランダムに試してみる」という効率的な探索方法です。'},
+  {id:'c2_34',ch:2,term:'汎化性能',desc:'学習済みモデルが未知のテストデータに対して正確な予測を行う能力。学習データを訓練データとテストデータに分割して評価する。',example:'🎓 「練習問題で高得点でも、初見の問題もちゃんと解けるか」が汎化性能。過学習すると汎化性能が下がります。'},
+  {id:'c3_01',ch:3,term:'単純パーセプトロン',desc:'隠れ層がなく、入力層と出力層だけからなる2層のニューラルネットワーク。線形分類のみ対応。',example:'🎓 「入力→即答」の最も単純な神経モデル。XORのような非線形問題は解けない限界がありました。'},
+  {id:'c3_02',ch:3,term:'多層パーセプトロン（MLP）',desc:'入力層・隠れ層（中間層）・出力層からなる3層以上のニューラルネットワーク。非線形問題にも対応可能。',example:'🎓 「入力→考える層（複数）→答え」の構造。隠れ層が増えるほど複雑な問題を解けるようになります。'},
+  {id:'c3_03',ch:3,term:'活性化関数',desc:'ニューロンへの入力を変換して次の層に渡す出力を決定する関数。非線形性を追加する役割。',example:'🎓 「この刺激は次に伝える？伝えない？」を決める神経細胞のスイッチのような関数です。'},
+  {id:'c3_04',ch:3,term:'損失関数',desc:'予測値と正解ラベルの誤差を定量的に表す関数。この値を最小化することが学習の目標。',example:'🎓 「今のAIの答えが正解からどれだけずれているか」を数値化する採点関数です。'},
+  {id:'c3_05',ch:3,term:'勾配降下法',desc:'損失関数の勾配（傾き）に沿って損失を最小化するパラメータを探索する最適化アルゴリズム。',example:'🎓 霧の中の山で「今いる場所の傾き」を感じながら、最も急な下り坂を歩いて麓を目指すイメージです。'},
+  {id:'c3_06',ch:3,term:'順伝播（フォワードパス）',desc:'入力層から出力層に向けてデータを伝播していくこと。予測値を計算するプロセス。',example:'🎓 「問題を読んで答えを書く」ように、入力から順番に答えを計算していく処理です。'},
+  {id:'c3_07',ch:3,term:'誤差逆伝播法（バックプロパゲーション）',desc:'出力層の誤差を入力側に向かって逆方向に伝播し、隠れ層の重みを更新する学習方法。',example:'🎓 「答えが間違っていた→どの計算が悪かったか逆向きに探る→重みを修正する」という反省のプロセスです。'},
+  {id:'c3_08',ch:3,term:'勾配消失問題',desc:'ネットワークが深くなると、重みの更新に必要な勾配情報が正しく伝わらなくなり、学習が停滞する現象。',example:'🎓 「後ろから前に反省を伝えていくと、前の層まで届く前に反省のサインがほぼゼロになってしまう」問題です。'},
+  {id:'c3_09',ch:3,term:'ReLU関数',desc:'マイナス入力を0にし、プラス入力はそのまま通す活性化関数。勾配消失問題を軽減できる。',example:'🎓 「マイナスはシャットアウト、プラスはそのまま通す一方通行の坂道」。シンプルで計算が速い。'},
+  {id:'c3_10',ch:3,term:'学習率',desc:'一度に重みを更新する歩幅を制御するハイパーパラメータ。大きすぎると発散、小さすぎると収束が遅い。',example:'🎓 山を下りるときの「一歩の歩幅」。大股すぎると谷を飛び越え、小股すぎると時間がかかります。'},
+  {id:'c3_11',ch:3,term:'エポック（Epoch）',desc:'訓練データ全体を1回学習に使う回数の単位。10エポック＝同じデータで10周学習。',example:'🎓 「問題集を1周やること」がエポック1。10エポックなら問題集を10周やることです。'},
+  {id:'c3_12',ch:3,term:'イテレーション（Iteration）',desc:'パラメータを1回更新すること。ミニバッチを1つ処理するごとに1イテレーション。',example:'🎓 「1問解いて丸付けして反省する」1セットが1イテレーション。'},
+  {id:'c3_13',ch:3,term:'確率的勾配降下法（SGD）',desc:'データをミニバッチに分けて少しずつパラメータを更新する最適化手法。局所最適解を回避しやすい。',example:'🎓 「全問まとめて採点するより、ランダムに少しずつ問題を解いて更新する」方法。あえてフラフラ歩いて穴を避けます。'},
+  {id:'c3_14',ch:3,term:'オンライン学習',desc:'データを1つずつ取り出してパラメータを更新する方法。局所解に陥りにくいが外れ値に敏感。',example:'🎓 「1問解くたびにすぐやり直す超短気な勉強法」。速いけど不安定になりやすい。'},
+  {id:'c3_15',ch:3,term:'バッチ学習（最急降下法）',desc:'全学習データを一度に使ってパラメータを更新する手法。安定しやすいが計算コストが高い。',example:'🎓 「全員の意見を聞いてからまとめて動く」慎重な会議スタイル。'},
+  {id:'c3_16',ch:3,term:'早期終了（Early Stopping）',desc:'検証データへの精度がこれ以上改善する見込みがないと判断した時点で学習を打ち切ること。',example:'🎓 「もうこれ以上練習しても逆効果（過学習）になる」と感じたら勉強を切り上げる勇気です。'},
+  {id:'c3_17',ch:3,term:'局所最適解',desc:'ある限られた範囲では最小だが、全体での真の最適解（大域最適解）ではない「ニセのゴール」。',example:'🎓 山を下りているつもりが、小さなくぼみ（ニセの麓）にはまってしまい動けなくなる状態です。'},
+  {id:'c3_18',ch:3,term:'プラトー',desc:'勾配がほぼゼロに近い平坦領域。学習が停滞しやすくなる場所。',example:'🎓 「どっちに進めばいいか分からないだだっ広い平地」で足踏みしている状態です。'},
+  {id:'c3_19',ch:3,term:'鞍点（サドルポイント）',desc:'ある次元から見ると極小だが、別の次元から見ると極大となっている不安定な点。',example:'🎓 馬の背中のような形。「横から見ると谷底、縦から見ると山頂」という不安定な場所です。'},
+  {id:'c3_20',ch:3,term:'畳み込みニューラルネットワーク（CNN）',desc:'画像認識に特化したネットワーク。畳み込み層・プーリング層・全結合層から構成される。',example:'🎓 画像から「エッジ→形→物体」と段階的に特徴を学習する、画像認識の最強モデルです。'},
+  {id:'c3_21',ch:3,term:'畳み込み層',desc:'フィルタを画像の上でストライド分ずらしながら畳み込み演算を行い、特徴マップを生成する層。',example:'🎓 「虫眼鏡を画像の上でスライドさせて、特定のパターンを探す」作業をする層です。'},
+  {id:'c3_22',ch:3,term:'プーリング層',desc:'特徴マップを圧縮し、被写体の位置変化に対してロバストにする層。情報量を削減する。',example:'🎓 「少し猫がずれていても同じ猫と認識できる」ように、細かい違いを無視してざっくり捉える層です。'},
+  {id:'c3_23',ch:3,term:'パディング（Padding）',desc:'入力画像の周りをゼロなどの固定値で埋める処理。畳み込み後も画像サイズを維持し、端の情報を学習しやすくする。',example:'🎓 「画像の周りに透明な枠を追加する」ことで、端っこの情報が捨てられるのを防ぐ処理です。'},
+  {id:'c3_24',ch:3,term:'ストライド',desc:'フィルタを畳み込む際に一度にずらすピクセル数。大きいほど出力サイズが小さくなる。',example:'🎓 虫眼鏡を「1ピクセルずつ動かす（ストライド1）」か「2ピクセルずつ飛ばして動かす（ストライド2）」かを決めます。'},
+  {id:'c3_25',ch:3,term:'特徴マップ',desc:'畳み込み層がフィルタを適用して生成した、画像の特徴が詰まった出力データ。',example:'🎓 「虫眼鏡でスキャンして、エッジ（輪郭）が強く反応した場所をマッピングした地図」です。'},
+  {id:'c3_26',ch:3,term:'データ拡張',desc:'データに回転・平行移動などのランダムな変更を加えることで、人工的に訓練データのバリエーションを増やす手法。',example:'🎓 「猫の写真を左右反転・拡大縮小してコピーを大量に作る」ことで少ないデータから練習材料を増やします。'},
+  {id:'c3_27',ch:3,term:'転移学習',desc:'膨大なデータで訓練した学習済みモデルの汎用的なパラメータ値を、別の新しいタスクに応用する手法。',example:'🎓 「英語をマスターした人がフランス語を学ぶときに英語の知識を活かす」ように既存知識を転用します。'},
+  {id:'c3_28',ch:3,term:'ファインチューニング',desc:'転移学習で使う学習済みモデルに新しいタスクに特化した層を追加し、出力層に近い位置のパラメータを調整する手法。',example:'🎓 「料理の基礎を覚えたシェフが、和食専門店に特化した技術だけ追加で練習する」イメージです。'},
+  {id:'c3_29',ch:3,term:'バッチ正規化',desc:'層ごとに標準化（平均を引いて標準偏差で割る）を行い、データの分布の偏り（内部共変量シフト）を補正する手法。',example:'🎓 「各層で偏差値化してデータを整えることで、次の層が受け取るデータが常に安定した形になる」仕組みです。'},
+  {id:'c3_30',ch:3,term:'ドロップアウト',desc:'学習時に一部のニューロンをランダムに無効化することで、過学習を軽減し汎化性能を高める手法。',example:'🎓 「毎回ランダムに一部の選手を休ませて練習する」ことで特定の選手に頼りすぎないチームを作るイメージです。'},
+  {id:'c3_31',ch:3,term:'プルーニング（枝刈り）',desc:'汎化性能への寄与度が低いノード間の接続を切り取ることでモデルを軽量化する手法。',example:'🎓 「木の不要な枝を切り落としてすっきりさせる」ように、使われていない神経の繋がりを削ってモデルを小さくします。'},
+  {id:'c3_32',ch:3,term:'蒸留（知識蒸留）',desc:'大規模な教師モデルへの入力とその出力を使って、小さな生徒モデルを学習させる手法。',example:'🎓 「天才先生（大きなモデル）の答えを真似して、小柄な優等生（小さなモデル）を育てる」方法です。'},
+  {id:'c3_33',ch:3,term:'量子化',desc:'モデルのパラメータをより小さいビット数（例：32bit→8bit）で表現することでモデルを軽量化する手法。',example:'🎓 「高精度な地図（32bit）を、少し粗くても使える地図（8bit）に圧縮する」ように容量を大幅に削減します。'},
+  {id:'c3_34',ch:3,term:'RNN（リカレントニューラルネットワーク）',desc:'時系列データを扱うニューラルネットワーク。隠れ層のフィードバック機構により、一度処理した情報を再入力して過去の入力・順序を考慮した予測が可能。',example:'🎓 「前の単語を記憶しながら次の単語を予測する」文章生成AIの基礎となるネットワークです。'},
+  {id:'c3_35',ch:3,term:'BPTT（Back-Propagation Through Time）',desc:'RNNにおける、時間軸に沿って誤差を逆方向に伝播する学習手法。長い系列では勾配消失問題の原因になりうる。',example:'🎓 「昔の失敗を掘り起こして今の学習に活かす」RNN専用の誤差逆伝播法です。'},
+  {id:'c3_36',ch:3,term:'重み衝突問題',desc:'RNNを時間方向に展開すると、「今は関係が低いが将来は高い」入力に対して重みを適切に設定しづらいという問題。',example:'🎓 「今は無関係なヒントが後から超重要になる」ケースで、RNNが学習に詰まってしまう問題です。'},
+  {id:'c3_37',ch:3,term:'LSTM（Long Short Term Memory）',desc:'従来のRNNの改良版。ゲート機構により長期的に保存したい情報をメモリに書き留め、不要な情報を忘却することで長い系列の学習を可能にする。',example:'🎓 「大事なことはメモして、要らないことは忘れる」という人間の記憶に似たしくみを持つRNNの進化版です。'},
+  {id:'c3_38',ch:3,term:'入力ゲート（LSTM）',desc:'LSTMのゲート機構のひとつ。入力重み衝突問題を防止するために、新しい情報をどれだけメモリに書き込むかを制御する。',example:'🎓 「今の情報をどれくらいメモに書き込むか」を決めるLSTMの受付係です。'},
+  {id:'c3_39',ch:3,term:'出力ゲート（LSTM）',desc:'LSTMのゲート機構のひとつ。出力重み衝突問題を防止するために、メモリの情報のうちどれを出力に使うかを制御する。',example:'🎓 「メモの情報のうち、どれを今回の答えに使うか」を決めるLSTMの発表係です。'},
+  {id:'c3_40',ch:3,term:'忘却ゲート（LSTM）',desc:'LSTMのゲート機構のひとつ。誤差がセルに過剰停留することを防止し、不要になった過去の情報をリセットする。',example:'🎓 「古くなった情報を積極的に忘れる」LSTMの片付け係。適切に忘れることで新しい情報を活かせます。'},
+  {id:'c3_41',ch:3,term:'CEC（Constant Error Carousel）',desc:'LSTMにおける、過去のデータを長期保存するユニット。長期依存を学習できるようにするためのメモリ機構。',example:'🎓 「重要な記憶を長期間保存し続けるLSTM専用のメモリ機能」です。'},
+  {id:'c3_42',ch:3,term:'CTC（Connectionist Temporal Classification）',desc:'RNNを用いた処理で、入力系列長と出力系列長が一致しなくてもよいように空白文字（blank）を加えて形式的に系列長をそろえる技術。',example:'🎓 「音声をテキストに変換するとき、音の長さと文字数が違う」問題を解決する技術です。'},
+  {id:'c3_43',ch:3,term:'GRU（Gated Recurrent Unit）',desc:'LSTMを簡略化したモデル。3種類のゲートの代わりにリセットゲートと更新ゲートの2種類を用いる。計算コストが低い。',example:'🎓 LSTMより軽量でシンプルな「スリムなLSTM」。計算コストを下げながら似た性能を発揮します。'},
+  {id:'c3_44',ch:3,term:'ニューラルネットワークにおける学習',desc:'正しい予測を出力できるよう、隠れ層におけるニューロン間の結合の強さ（重みとバイアス）を層ごとに最適化する作業。',example:'🎓 「間違えるたびに少しずつ修正する」練習のように、重みを調整して正確な予測ができるよう鍛えていく作業です。'},
+  {id:'c3_45',ch:3,term:'エージェント（強化学習）',desc:'強化学習において、環境から受け取った状態をもとに、高い報酬を得られるような行動を選択できるよう学習を行う主体。',example:'🎓 「ゲームのキャラクター」のようなもの。環境（ゲーム画面）を見て、スコアを最大化する行動を自分で学んでいきます。'},
+  {id:'c3_46',ch:3,term:'割引率',desc:'将来もらえる報酬をどれくらい現在の価値として考慮するかを表すハイパーパラメータ（0〜1の間）。将来の報酬を割り引いて累積報酬を計算する。',example:'🎓 「今すぐもらえる100円」と「1年後の100円」では今の方が価値が高い、という感覚を数値化したものです。'},
+  {id:'c3_47',ch:3,term:'バンディットアルゴリズム',desc:'報酬が高かった行動を積極的に選ぶ「活用（exploitation）」と、別の行動を試す「探索（exploration）」のバランスを整えるアルゴリズム。',example:'🎓 「いつも行く定食屋（活用）」と「新しいお店を試す（探索）」のバランスを取る戦略です。'},
+  {id:'c3_48',ch:3,term:'Q値（状態行動価値）',desc:'各状態において特定の行動を取ったとき、将来もらえる報酬の期待値。Q(s,a)で表す。',example:'🎓 「今ここで右に行くと、最終的に何点もらえそうか」を数値化したものです。'},
+  {id:'c3_49',ch:3,term:'行動価値関数',desc:'特定の状態sにおいて方策に従って行動aを取った時に将来もらえる累積報酬の期待値を表す関数Q(s,a)。',example:'🎓 「この場面でこの手を打つと最終的に何点稼げるか」を計算する関数。将棋の「次の一手の評価値」のようなものです。'},
+  {id:'c3_50',ch:3,term:'方策勾配法',desc:'方策関数のパラメータを勾配降下法で逐次的に更新しながら、直接的に方策（行動のルール）を最適化する強化学習の手法。',example:'🎓 「どんな状況でどう動くか」という行動方針そのものを、少しずつ改善していく学習方法です。'},
+  {id:'c3_51',ch:3,term:'モンテカルロ法（強化学習）',desc:'ランダムに多数のパターンを探索する手法。報酬が得られるまで行動し、報酬を得た段階で過去の価値関数を一気に更新する。',example:'🎓 「とにかく最後まで試合してみて、勝ったら全部の判断を振り返ってまとめて修正する」方法です。'},
+  {id:'c3_52',ch:3,term:'TD学習（時間的差分）',desc:'実際にエージェントを行動させ、次の時点の状態を確認しながらQ値を逐次更新することで方策を間接的に改善する学習法。',example:'🎓 「1手ごとに良し悪しを評価して修正する」こまめな振り返り型の学習。モンテカルロ法より早く更新できます。'},
+  {id:'c3_53',ch:3,term:'SARSA',desc:'各ステップで実際にとった行動を用いてQ値を更新する、方策オン（on-policy）のTD学習法。',example:'🎓 「実際に歩いた道をそのまま評価する」正直な学習方法。自分の行動をリアルタイムで反省します。'},
+  {id:'c3_54',ch:3,term:'Q学習',desc:'最大の価値をもたらすと推定される行動を用いてQ値を更新する、方策オフ（off-policy）のTD学習法。',example:'🎓 「実際に歩いた道ではなく、最善の道を想定して評価する」学習方法。現実より理想で更新するのが特徴です。'},
+  {id:'c3_55',ch:3,term:'ε-greedy法',desc:'εの確率でランダムな行動（探索）を選び、それ以外は最も価値の高い行動（活用）を選ぶ方策決定の手法。',example:'🎓 「10回に1回はランダムに動いて新しい道を探す」という探索と活用のバランス戦略です。'},
+  {id:'c3_56',ch:3,term:'マルコフ性',desc:'現在の状態のみに依存し、過去の状態には一切依存しないという仮定。次の状態は今の状態だけで決まる。',example:'🎓 「今の天気だけで明日の天気を予測する」ように、過去を考えずに現在だけで判断する性質です。'},
+  {id:'c3_57',ch:3,term:'マルコフ決定過程（MDP）',desc:'マルコフ性に基づき、現在の状態と行動だけから将来の状態に遷移する確率を導出するモデル。強化学習の理論的基盤。',example:'🎓 「今の状況と取った行動だけで、次の状況が決まる」という強化学習の世界観を数学的に表したものです。'},
+  {id:'c3_58',ch:3,term:'DQN（Deep Q-Network）',desc:'深層強化学習の代表的手法。Q学習の行動価値関数（Q値）の表現にディープラーニングを使い、膨大な数の状態の学習を可能にする。DeepMind社が開発。',example:'🎓 「ゲーム画面をそのまま入力してQ値を計算する」ためにニューラルネットワークを使った、AIゲームプレイヤーの先駆けです。'},
+  {id:'c3_59',ch:3,term:'Experience Replay（経験再生）',desc:'DQNにおいて、過去の経験をバッファに貯めておき、ランダムにミニバッチを取り出して学習することでサンプル間の相関を軽減する手法。',example:'🎓 「過去の試合を録画しておいて、後でランダムに選んで復習する」ことで偏りなく学ぶ仕組みです。'},
+  {id:'c3_60',ch:3,term:'AlphaGo',desc:'DeepMind社が開発した囲碁AI。碁盤の評価にCNNを使用し、手の探索にモンテカルロ木探索法を組み合わせ、2016年に世界トッププロ棋士に勝利した。',example:'🎓 「CNNで局面を評価し、モンテカルロ法で先読みする」組み合わせで人間のプロに初めて勝った歴史的なAIです。'},
+  {id:'c3_61',ch:3,term:'AlphaGo Zero',desc:'AlphaGoの強化版。人間の棋譜データを一切使わず、完全自己対局のみで学習する。AlphaGoを超える棋力を短期間で達成した。',example:'🎓 「過去の人間の手を参考にせず、自分と戦うだけで強くなった」完全自立型の囲碁AI。人類の知識が不要でした。'},
+  {id:'c3_62',ch:3,term:'GoogLeNet',desc:'2014年のILSVRC（画像認識コンテスト）で1位を獲得したCNNモデル。異なる大きさの畳み込み層を並列に並べた「Inceptionモジュール」を組み合わせた横広がりの構造が特徴。',example:'🎓 「縦に深く積み上げる」のではなく「横に広げる」独特の構造。2014年の画像認識コンテストで優勝したCNNです。'},
+  {id:'c3_63',ch:3,term:'ResNet（残差ネットワーク）',desc:'層を飛び越えた「スキップ結合（残差接続）」を持つCNNモデル。超深層ネットワークでも勾配消失問題を抑制して学習が可能。2015年のILSVRCで1位を獲得。',example:'🎓 「前の層の答えをそのまま後ろの層にも直接渡す」スキップ結合で、100層以上の超深いネットワークでも学習できるようにしました。'},
+  {id:'c3_64',ch:3,term:'オートエンコーダ',desc:'入力と出力が同じデータになるよう、隠れ層で一度圧縮（エンコード）してから復元（デコード）するニューラルネットワーク。正解ラベル不要の教師なし学習で特徴量・次元削減を行う。',example:'🎓 「写真を圧縮して送り、受け取り側が復元する」仕組み。圧縮の途中（隠れ層）に「本質的な特徴だけ」が残ります。'},
+  {id:'c3_65',ch:3,term:'Leaky ReLU',desc:'ReLU関数の派生版。通常のReLUはマイナス入力を0にするが、Leaky ReLUはマイナス入力に小さな傾き（例：0.01）を持たせることで、ニューロンが完全に死なないようにした活性化関数。',example:'🎓 「マイナスをゼロで切る」ReLUと違い、「マイナスもほんの少し通す」ことでReLUの弱点（Dying ReLU問題）を改善しました。'},
+  {id:'c3_66',ch:3,term:'バッチサイズ',desc:'ミニバッチ学習において、1回のパラメータ更新に使うデータの塊の数。大きいほど安定するが計算コストが高く、小さいほど更新が速いが不安定になりやすい。',example:'🎓 「問題集を何問ごとに区切って採点するか」の区切り数。32問ずつ採点するなら「バッチサイズ32」です。'},
+  // ── Chapter 4: ディープラーニングの研究分野 ──
+  {id:'c4_01',ch:4,term:'物体検出',desc:'画像の中から物体の位置（バウンディングボックス）と種類を同時に特定する技術。候補領域を切り出して画像分類器でクラスを推定する。',example:'🎓 写真の中の「犬はここにいて、猫はあそこにいる」と位置とラベルを両方答えるイメージ。'},
+  {id:'c4_02',ch:4,term:'R-CNN',desc:'Selective Searchで物体候補領域を検出し、領域ごとにCNNで特徴を抽出して分類する手法。候補領域の類似ピクセルをグルーピングして候補を絞る。',example:'🎓 「怪しい場所を2000か所ピックアップしてから、1か所ずつ顔認識する」イメージ。'},
+  {id:'c4_03',ch:4,term:'Fast R-CNN・Faster R-CNN',desc:'R-CNNの高速化版。Fast R-CNNは画像全体に一度だけCNNを適用。Faster R-CNNはさらにRPN（候補領域提案ネットワーク）を導入してエンド・ツー・エンドで学習できる。',example:'🎓 「先に地図を1枚だけスキャンして、あとで気になる場所を拡大する」ように効率化したイメージ。'},
+  {id:'c4_04',ch:4,term:'SSD・YOLO',desc:'領域の切り出しと物体認識を1ステップで同時に行い高速化を実現した物体検出手法。リアルタイム検出に向いている。',example:'🎓 「候補を絞る手順を省いて、画像を見た瞬間に一気に全部認識する」超高速なイメージ。'},
+  {id:'c4_05',ch:4,term:'セマンティックセグメンテーション',desc:'画像の各画素にクラスラベルを割り当て、画素単位で物体の輪郭を認識する技術。FCN・U-Net・SegNetなどが代表的。',example:'🎓 塗り絵のように「この画素は空、この画素は道路、この画素は人」と全ピクセルを色分けするイメージ。'},
+  {id:'c4_06',ch:4,term:'FCN（完全畳み込みネットワーク）',desc:'Fully Convolutional Network。全層が畳み込み層で構成され、全結合層を持たない。画素ごとにカテゴリを予測するセマンティックセグメンテーションの基礎モデル。',example:'🎓 入力画像と同じサイズの「カテゴリ地図」を出力するネットワーク。全ピクセルに答えを出す。'},
+  {id:'c4_07',ch:4,term:'SegNet',desc:'エンコーダとデコーダが対称な構造を持つセグメンテーションモデル。FCNよりメモリ効率が高く、自動運転など実用場面で活用される。',example:'🎓 画像を小さく圧縮してから元のサイズに復元し、各ピクセルのクラスを予測するイメージ。'},
+  {id:'c4_08',ch:4,term:'インスタンスセグメンテーション',desc:'物体検出とセマンティックセグメンテーションを統合し、同じクラスの物体も個体ごとに区別して輪郭を認識する技術。YOLACT・Mask R-CNNが代表的。',example:'🎓 「人Aの輪郭」「人Bの輪郭」と個人ごとに別々の塗り絵をするイメージ。同じ「人」でも区別する。'},
+  {id:'c4_09',ch:4,term:'コーパス',desc:'自然言語処理に用いる大規模なテキストデータの集合。学習データとして使われる。',example:'🎓 辞書を作るために集めた「大量の本や新聞のデジタルデータ」がコーパス。'},
+  {id:'c4_10',ch:4,term:'Bag-of-Words（BoW）',desc:'テキストを単語の出現頻度ベクトルとして表現する手法。単語の順序は無視し、単語の有無・頻度だけで文書を数値化する。',example:'🎓 「りんご3回、バナナ1回、ぶどう2回」のように単語の個数を袋に詰め込むイメージ。'},
+  {id:'c4_11',ch:4,term:'形態素解析',desc:'文章を意味を持つ最小単位（形態素）に分割し、品詞を推定する処理。MeCab・JUMAN・Janomeなどが代表的なツール。',example:'🎓 「私は学校に行く」→「私／は／学校／に／行く」と単語に分解するイメージ。'},
+  {id:'c4_12',ch:4,term:'N-gram',desc:'文章をN文字（またはN単語）ずつ連続した単位に区切る方法。2-gramはバイグラム、3-gramはトライグラムと呼ぶ。',example:'🎓 「東京タワー」を2-gramで区切ると「東京」「京タ」「タワ」「ワー」のようになる。'},
+  {id:'c4_13',ch:4,term:'TF-IDF',desc:'TF（単語の出現頻度）×IDF（逆文書頻度）で、ある単語が文書中でどれほど重要かを数値化する手法。多くの文書に共通する語は重要度が低くなる。',example:'🎓 「この文書だけに多く出てくる単語ほど重要」という直感を数式にしたもの。'},
+  {id:'c4_14',ch:4,term:'ストップワード',desc:'「は」「の」「です」「a」「the」など、解析に寄与しない頻出単語。前処理で除去することが多い。',example:'🎓 文章から「助詞や冠詞など意味の薄い言葉を除いて、重要な単語だけを残す」イメージ。'},
+  {id:'c4_15',ch:4,term:'構文解析',desc:'文章の係り受け構造（どの単語がどの単語にかかるか）を推定する処理。CaboCha・KNPなどが代表的なツール。',example:'🎓 「かわいい犬が走る」で「かわいい→犬」「犬が→走る」のような矢印の地図を作るイメージ。'},
+  {id:'c4_16',ch:4,term:'意味解析',desc:'構文解析の後に適用し、同一文内の意味構造（述語と項の関係など）を解析する処理。',example:'🎓 「彼が本を読む」で「誰が（彼）、何を（本）、どうする（読む）」の意味的役割を整理するイメージ。'},
+  {id:'c4_17',ch:4,term:'文脈解析',desc:'複数の文にまたがる関係性を解析する処理。照応解析（「彼」が誰を指すか）や談話構造解析などがある。',example:'🎓 「太郎が走った。彼は速かった」の「彼＝太郎」という文をまたいだ繋がりを理解するイメージ。'},
+  {id:'c4_18',ch:4,term:'One-Hotベクトル',desc:'その単語に対応するインデックスだけ1、残りはすべて0である高次元でスパースな単語ベクトル。単語の意味や類似性を表現できず、単語数だけ次元が増えるため機械学習には向かない。',example:'🎓「りんご・バナナ・ぶどう」の3単語なら「りんご=[1,0,0]、バナナ=[0,1,0]」と表すが、意味の近さは一切表現できないイメージ。'},
+  {id:'c4_19',ch:4,term:'単語埋め込み（分散表現）',desc:'変換行列を用いて単語を低次元の密なベクトルに変換する手法。意味が近い単語ほどベクトル空間上で近い座標に配置され、単語間の類似性をベクトル演算で表現できる。',example:'🎓「王様－男＋女＝女王様」のようにベクトル計算で単語の意味関係を表現できるイメージ。'},
+  {id:'c4_20',ch:4,term:'Word2Vec',desc:'ニューラルネットワークの隠れ層の最適化を通じて、単語の意味や関係性を数値ベクトルで表現するモデル。CBOWとSkip-gramの2種類のアルゴリズムがある。',example:'🎓 大量の文章を学習して「似た文脈で使われる単語は似たベクトルになる」ように自動で単語の地図を作るイメージ。'},
+  {id:'c4_21',ch:4,term:'Doc2Vec',desc:'Word2Vecを文章単位に拡張し、文章全体をベクトルに変換して文章間の類似度をベクトル演算で表現する手法。',example:'🎓 単語ではなく「文章まるごと」をベクトルに変換して、似た内容の文書を近くに配置するイメージ。'},
+  {id:'c4_22',ch:4,term:'スキップグラム（Skip-gram）',desc:'Word2Vecのアルゴリズムの一つ。「中心語」を与え、その前後の一定範囲内に「周辺語」が存在する確率を推定する。CBOWとは逆方向。',example:'🎓「好き」という中心語から、前後にある「私」「は」「が」を予測するイメージ。中心→周辺の方向。'},
+  {id:'c4_23',ch:4,term:'CBOW（Continuous Bag of Words）',desc:'Word2Vecのアルゴリズムの一つ。周辺語を与えて中心にある単語を推定する。スキップグラムとは逆�
