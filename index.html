@@ -252,6 +252,20 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI','Hiragino Kak
 .exam-choice.wrong{border-color:var(--red)!important;background:rgba(239,68,68,.13);}
 .exam-choice.reveal{border-color:var(--green)!important;background:rgba(16,185,129,.06);}
 .exam-choice:disabled{cursor:default;}
+/* timer */
+.timer-pick{display:flex;gap:.5rem;align-items:center;justify-content:center;flex-wrap:wrap;}
+.timer-pick .tp-lbl{font-size:.8rem;color:var(--muted);}
+.timer-pick button{background:var(--card);border:1.5px solid var(--border);border-radius:2rem;padding:.35rem .9rem;color:var(--muted);font-size:.8rem;cursor:pointer;transition:all .15s;font-family:inherit;}
+.timer-pick button.tp-on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700;}
+.exam-timer-wrap{width:100%;max-width:640px;}
+.exam-timer-row{display:flex;justify-content:flex-end;margin-bottom:4px;}
+.exam-timer-num{font-size:.82rem;font-weight:800;font-variant-numeric:tabular-nums;min-width:2.2rem;text-align:right;color:var(--muted);transition:color .3s;}
+.exam-timer-num.t-warn{color:var(--gold);}
+.exam-timer-num.t-danger{color:var(--red);}
+.exam-timer-bar-outer{width:100%;height:5px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;}
+.exam-timer-bar-inner{height:100%;border-radius:3px;width:100%;transition:width 1s linear,background .5s;background:var(--green);}
+.exam-timer-bar-inner.t-warn{background:var(--gold);}
+.exam-timer-bar-inner.t-danger{background:var(--red);}
 #examResultScreen{padding:1.5rem 1.5rem 6rem;gap:1.2rem;align-items:center;}
 .exam-result-header{text-align:center;width:100%;max-width:500px;}
 .exam-result-emoji{font-size:3.5rem;}
@@ -483,12 +497,22 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI','Hiragino Kak
     <div class="screen-title">📝 章末問題モード</div>
   </div>
   <div style="color:var(--muted);font-size:.82rem;text-align:center;max-width:500px">各章の問題で本番形式の4択練習ができます</div>
+  <div class="timer-pick" id="timerPick">
+    <span class="tp-lbl">⏱️ タイマー：</span>
+    <button onclick="setExamTimer(0)" id="tp0" class="tp-on">オフ</button>
+    <button onclick="setExamTimer(30)" id="tp30">30秒</button>
+    <button onclick="setExamTimer(50)" id="tp50">50秒</button>
+  </div>
   <div class="exam-ch-grid" id="examChGrid"></div>
 </div>
 
 <!-- EXAM QUIZ -->
 <div class="screen" id="examScreen">
   <div class="exam-topbar" id="examTopbar"></div>
+  <div class="exam-timer-wrap" id="examTimerWrap" style="display:none">
+    <div class="exam-timer-row"><span class="exam-timer-num" id="examTimerNum">50</span></div>
+    <div class="exam-timer-bar-outer"><div class="exam-timer-bar-inner" id="examTimerBar"></div></div>
+  </div>
   <div class="exam-q-card" id="examQCard"></div>
   <div class="exam-choices" id="examChoices"></div>
   <button class="next-btn" id="examNextBtn" onclick="nextExamQ()" style="display:none;max-width:640px">次の問題 →</button>
@@ -2068,6 +2092,68 @@ function confirmReset(){
 
 // ════════════ EXAM MODE ════════════
 let examState = {ch:0, qs:[], idx:0, correct:0, wrong:[], answered:false};
+let examTimerSecs = 0;       // 0=off, 30, 50
+let _examTimerInterval = null;
+let _examTimerLeft = 0;
+
+function setExamTimer(s){
+  examTimerSecs = s;
+  [0,30,50].forEach(v=>{
+    const btn=document.getElementById('tp'+v);
+    if(btn) btn.classList.toggle('tp-on', v===s);
+  });
+}
+
+function _stopTimer(){
+  if(_examTimerInterval){ clearInterval(_examTimerInterval); _examTimerInterval=null; }
+}
+
+function _startTimer(){
+  _stopTimer();
+  if(!examTimerSecs){ document.getElementById('examTimerWrap').style.display='none'; return; }
+  _examTimerLeft = examTimerSecs;
+  const wrap=document.getElementById('examTimerWrap');
+  const num=document.getElementById('examTimerNum');
+  const bar=document.getElementById('examTimerBar');
+  wrap.style.display='';
+  // reset bar immediately (no transition on first frame)
+  bar.style.transition='none';
+  bar.style.width='100%';
+  bar.className='exam-timer-bar-inner';
+  num.className='exam-timer-num';
+  num.textContent=_examTimerLeft;
+  // start ticking after short delay so CSS transition kicks in
+  requestAnimationFrame(()=>{
+    bar.style.transition='width 1s linear,background .5s';
+    _examTimerInterval = setInterval(()=>{
+      _examTimerLeft--;
+      const pct = Math.max(0, _examTimerLeft / examTimerSecs * 100);
+      bar.style.width = pct+'%';
+      num.textContent = _examTimerLeft;
+      // colour transitions
+      const warn = _examTimerLeft <= Math.ceil(examTimerSecs*0.4);
+      const danger = _examTimerLeft <= Math.ceil(examTimerSecs*0.2);
+      bar.className='exam-timer-bar-inner'+(danger?' t-danger':warn?' t-warn':'');
+      num.className='exam-timer-num'+(danger?' t-danger':warn?' t-warn':'');
+      if(_examTimerLeft <= 0){
+        _stopTimer();
+        // time up → force wrong
+        if(!examState.answered){
+          examState.answered=true;
+          const ans=examState.qs[examState.idx].ans;
+          document.querySelectorAll('.exam-choice').forEach(b=>b.disabled=true);
+          document.getElementById('ec'+ans).classList.add('reveal');
+          examState.wrong.push(examState.idx);
+          document.getElementById('examNextBtn').style.display='block';
+          // flash red on bar
+          bar.style.width='0%';
+          num.textContent='⏰';
+          num.className='exam-timer-num t-danger';
+        }
+      }
+    }, 1000);
+  });
+}
 
 const EXAM_CH_META = {
   1:{icon:'🔰',name:'Chapter 1',sub:'人工知能とは・AI史'},
@@ -2096,6 +2182,7 @@ function showExamSelect(){
 }
 
 function startExam(ch){
+  _stopTimer();
   examState = {ch:+ch, qs:[...(EXAM_QS[ch]||[])], idx:0, correct:0, wrong:[], answered:false};
   showScreen('examScreen');
   renderExamQ();
@@ -2119,11 +2206,13 @@ function renderExamQ(){
   nb.style.display='none';
   nb.textContent = (idx+1 < qs.length) ? '次の問題 →' : '結果を見る 🏁';
   examState.answered = false;
+  _startTimer();
 }
 
 function selectExamAns(btn, idx){
   if(examState.answered) return;
   examState.answered = true;
+  _stopTimer();
   const ans = examState.qs[examState.idx].ans;
   document.querySelectorAll('.exam-choice').forEach(b=>b.disabled=true);
   if(idx === ans){
@@ -2138,6 +2227,7 @@ function selectExamAns(btn, idx){
 }
 
 function nextExamQ(){
+  _stopTimer();
   examState.idx++;
   if(examState.idx >= examState.qs.length) finishExam();
   else renderExamQ();
