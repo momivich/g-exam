@@ -385,11 +385,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI','Hiragino Kak
   <div class="settings-card">
     <h3>タイマー</h3>
     <div class="chip-group" id="timerChips">
-      <div class="chip" data-timer="0" onclick="selectChip(this,'timerChips')">なし</div>
-      <div class="chip" data-timer="50" onclick="selectChip(this,'timerChips')">50秒</div>
-      <div class="chip active" data-timer="30" onclick="selectChip(this,'timerChips')">30秒</div>
-      <div class="chip" data-timer="20" onclick="selectChip(this,'timerChips')">20秒（難）</div>
-      <div class="chip" data-timer="10" onclick="selectChip(this,'timerChips')">10秒（鬼）</div>
+      <div class="chip active" data-timer="50" onclick="selectChip(this,'timerChips')">50秒</div>
+      <div class="chip" data-timer="30" onclick="selectChip(this,'timerChips')">30秒</div>
     </div>
   </div>
   <button class="start-big" onclick="startQuiz()">🚀 クイズスタート！</button>
@@ -1381,7 +1378,7 @@ const EXAM_QS = {
 
 // ════════════ STATE ════════════
 let appState = {
-  mode:'normal', chapters:[1,2,3,4], count:10, type:'mixed', timer:30,
+  mode:'normal', chapters:[1,2,3,4], count:10, type:'mixed', timer:50,
   questions:[], current:0, score:0, combo:0, maxCombo:0,
   correct:0, wrong:0, sessionWrong:[], timerInterval:null, timeLeft:0, answered:false,
   fcCards:[], fcIndex:0, fcFlipped:false, fcGotIt:[], fcNotYet:[],
