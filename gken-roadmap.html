@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G検定 合格ロードマップ</title>
+<style>
+  :root{
+    --bg:#0f1720; --card:#17212b; --card2:#1e2a37; --line:#2b3a49;
+    --txt:#e8eef4; --sub:#9db0c2; --accent:#4ca3ff; --accent2:#38d39f;
+    --warn:#ffb84c; --bad:#ff6b6b; --good:#38d39f;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;
+    background:var(--bg);color:var(--txt);line-height:1.6;}
+  header{padding:20px 16px 12px;text-align:center;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#132030,#0f1720);position:sticky;top:0;z-index:20;}
+  header h1{margin:0;font-size:18px;letter-spacing:.02em;}
+  header .sub{color:var(--sub);font-size:12px;margin-top:2px;}
+  .wrap{max-width:860px;margin:0 auto;padding:16px;}
+  .countdown{display:flex;gap:10px;justify-content:center;margin:14px 0 4px;flex-wrap:wrap;}
+  .cd-box{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:10px 16px;text-align:center;min-width:90px;}
+  .cd-box .num{font-size:26px;font-weight:700;color:var(--accent);}
+  .cd-box .lbl{font-size:11px;color:var(--sub);}
+  .cd-box.warn .num{color:var(--warn);}
+  .cd-box.bad .num{color:var(--bad);}
+  nav.tabs{display:flex;gap:6px;overflow-x:auto;padding:6px 0;margin:8px 0;position:sticky;top:66px;
+    background:var(--bg);z-index:15;}
+  nav.tabs button{flex:0 0 auto;background:var(--card);color:var(--sub);border:1px solid var(--line);
+    border-radius:20px;padding:7px 14px;font-size:13px;cursor:pointer;white-space:nowrap;}
+  nav.tabs button.active{background:var(--accent);color:#06121f;border-color:var(--accent);font-weight:700;}
+  .panel{display:none;animation:fade .2s ease;}
+  .panel.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:12px 0;}
+  h2.sec{font-size:15px;margin:18px 0 6px;color:var(--accent2);}
+  .bar-outer{background:#0c141d;border-radius:8px;height:14px;overflow:hidden;border:1px solid var(--line);}
+  .bar-inner{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0;transition:width .4s;}
+  .muted{color:var(--sub);font-size:13px;}
+  .pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;background:var(--card2);
+    color:var(--sub);border:1px solid var(--line);margin-right:4px;}
+  .pill.now{background:var(--accent);color:#06121f;border-color:var(--accent);font-weight:700;}
+  .pill.done{background:var(--good);color:#06121f;border-color:var(--good);}
+  .week{border-left:3px solid var(--line);padding-left:12px;margin:14px 0;}
+  .week.now{border-left-color:var(--accent);}
+  .week h3{margin:0 0 2px;font-size:14px;}
+  .week .dates{color:var(--sub);font-size:12px;}
+  .task{display:flex;align-items:flex-start;gap:8px;padding:5px 0;font-size:13.5px;}
+  .task input{margin-top:3px;width:17px;height:17px;accent-color:var(--accent2);flex:0 0 auto;}
+  .task.checked span{color:var(--sub);text-decoration:line-through;}
+  .phase-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
+  .topic{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;
+    padding:9px 0;border-bottom:1px solid var(--line);}
+  .topic:last-child{border-bottom:none;}
+  .topic .name{font-size:13.5px;}
+  .topic .name small{display:block;color:var(--sub);font-size:11px;}
+  .lv{display:flex;gap:4px;}
+  .lv button{width:26px;height:26px;border-radius:6px;border:1px solid var(--line);background:var(--card2);
+    color:var(--sub);font-size:12px;cursor:pointer;}
+  .lv button.on1{background:#ff6b6b;color:#fff;border-color:#ff6b6b;}
+  .lv button.on2{background:#ff9f45;color:#22160a;border-color:#ff9f45;}
+  .lv button.on3{background:#ffd23f;color:#22160a;border-color:#ffd23f;}
+  .lv button.on4{background:#9ee37d;color:#0e2010;border-color:#9ee37d;}
+  .lv button.on5{background:#38d39f;color:#06201a;border-color:#38d39f;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{border:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top;}
+  th{background:var(--card2);color:var(--sub);font-weight:600;}
+  a{color:var(--accent);}
+  .logrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0;}
+  .logrow input{background:var(--card2);border:1px solid var(--line);color:var(--txt);
+    border-radius:8px;padding:7px 9px;font-size:13px;}
+  .btn{background:var(--accent);color:#06121f;border:none;border-radius:8px;padding:8px 14px;
+    font-weight:700;cursor:pointer;font-size:13px;}
+  .btn.ghost{background:transparent;color:var(--sub);border:1px solid var(--line);}
+  .big{font-size:30px;font-weight:800;color:var(--accent2);}
+  .row{display:flex;gap:12px;flex-wrap:wrap;}
+  .row .card{flex:1;min-width:150px;margin:0;}
+  .tip{background:#152433;border:1px solid #24435f;border-radius:10px;padding:10px 12px;
+    font-size:12.5px;color:#bcd6ee;margin:10px 0;}
+  .tip b{color:var(--accent);}
+  footer{text-align:center;color:var(--sub);font-size:11px;padding:24px 12px;}
+  .logitem{display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--line);}
+  .ch-head{font-size:13px;font-weight:700;color:var(--accent2);margin:14px 0 4px;padding:4px 0;
+    border-bottom:2px solid var(--line);}
+  .streak-row{display:flex;gap:4px;flex-wrap:wrap;margin:8px 0;}
+  .streak-day{width:22px;height:22px;border-radius:4px;background:var(--card2);border:1px solid var(--line);
+    font-size:9px;display:flex;align-items:center;justify-content:center;color:var(--sub);cursor:pointer;}
+  .streak-day.done{background:var(--accent2);border-color:var(--accent2);color:#06201a;}
+  .streak-day.today{border-color:var(--accent);box-shadow:0 0 0 2px rgba(76,163,255,.4);}
+  .quiz-goal{font-size:38px;font-weight:800;color:var(--accent);line-height:1;}
+  .quiz-goal small{font-size:14px;font-weight:400;color:var(--sub);}
+</style>
+</head>
+<body>
+<header>
+  <h1>🤖 G検定 合格ロードマップ</h1>
+  <div class="sub">試験日：2026/9月（※要確認） ／ 学習開始：2026/7/7 ／ 方針：アプリで1日20問 → 試験モードで定着</div>
+</header>
+
+<div class="wrap">
+  <div class="countdown" id="countdown"></div>
+
+  <nav class="tabs" id="tabs">
+    <button data-t="dash" class="active">📊 ダッシュボード</button>
+    <button data-t="road">🗺️ ロードマップ</button>
+    <button data-t="under">🎯 理解度</button>
+    <button data-t="log">⏱️ 学習ログ</button>
+    <button data-t="streak">🔥 日課チェック</button>
+    <button data-t="mat">📚 教材</button>
+    <button data-t="exam">📝 試験の中身</button>
+  </nav>
+
+  <!-- DASHBOARD -->
+  <section class="panel active" id="p-dash">
+    <div class="row">
+      <div class="card"><div class="muted">進捗（タスク完了）</div><div class="big" id="d-prog">0%</div></div>
+      <div class="card"><div class="muted">平均理解度</div><div class="big" id="d-under">–</div></div>
+      <div class="card"><div class="muted">累計学習時間</div><div class="big" id="d-hours">0h</div></div>
+    </div>
+    <div class="card">
+      <div class="muted">全体タスク進捗</div>
+      <div class="bar-outer" style="margin-top:6px"><div class="bar-inner" id="d-bar"></div></div>
+      <div class="muted" id="d-bartxt" style="margin-top:6px"></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px">
+        <b>🔥 日課ストリーク</b>
+        <span class="muted" id="d-streak-info"></span>
+      </div>
+      <div class="streak-row" id="d-streak-mini"></div>
+    </div>
+    <div class="card">
+      <div class="phase-head"><b>📌 今週やること</b><span class="muted" id="d-weeklbl"></span></div>
+      <div id="d-thisweek"></div>
+    </div>
+    <div class="tip">
+      <b>G検定 合格作戦</b>：アプリで<b>1日20問の単語学習</b>を日課にしつつ、各章が終わったら<b>試験モードで章末問題</b>を解く。
+      理解度タブで弱点を可視化して、試験直前は<b>赤・オレンジ</b>の分野だけ集中補強する。
+    </div>
+    <div class="tip">
+      <b>50秒/問ペースを意識して</b>：本番は145問・100分（オンライン）= 約41秒/問。
+      日頃から問題を読むスピードを上げておくと安心。試験モードは問題文が長めに作ってあるので練習になります。
+    </div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section class="panel" id="p-road">
+    <div class="muted" style="margin-bottom:6px">学習開始から試験まで約11週。<b>「アプリで単語20問/日 → 試験モードで定着」</b>を繰り返すのが基本サイクルです。</div>
+    <div id="roadmap"></div>
+  </section>
+
+  <!-- UNDERSTANDING -->
+  <section class="panel" id="p-under">
+    <div class="muted" style="margin-bottom:8px">各論点を「1=全然わからない 〜 5=確実に解ける」で自己評価。
+      試験前は<b style="color:var(--bad)">赤・オレンジ</b>を優先的に補強しましょう。</div>
+    <div class="card" id="under-list"></div>
+    <div class="tip"><b>使い方のコツ</b>：アプリの試験モードで問題を解くたびに更新。「解説なしで解けた=4〜5」「なんとか解けた=3」「解けない=1〜2」が目安です。</div>
+  </section>
+
+  <!-- LOG -->
+  <section class="panel" id="p-log">
+    <div class="card">
+      <div class="muted">今日の学習時間を記録</div>
+      <div class="logrow">
+        <input type="date" id="log-date">
+        <input type="number" id="log-hours" placeholder="時間 (例 0.5)" step="0.25" min="0" style="width:130px">
+        <button class="btn" id="log-add">記録する</button>
+      </div>
+      <div class="muted">目標：約55時間（11週×週5h）　／　現在 <b id="log-total">0</b> h（達成率 <span id="log-pct">0%</span>）</div>
+      <div class="bar-outer" style="margin-top:6px"><div class="bar-inner" id="log-bar"></div></div>
+    </div>
+    <div class="card">
+      <div class="muted" style="margin-bottom:4px">記録一覧</div>
+      <div id="log-list"><div class="muted">まだ記録がありません。</div></div>
+    </div>
+  </section>
+
+  <!-- STREAK -->
+  <section class="panel" id="p-streak">
+    <div class="card">
+      <div class="muted">日課（20問/日）の実施記録。今日チェックを入れましょう。</div>
+      <div style="margin:12px 0;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <button class="btn" id="streak-today-btn">✅ 今日の20問、完了！</button>
+        <span class="muted" id="streak-today-status"></span>
+      </div>
+      <div class="muted" style="margin-bottom:6px">🔥 連続日数：<b id="streak-count" style="color:var(--accent2);font-size:1.2em">0</b> 日</div>
+      <div class="muted" style="margin-bottom:6px">📅 累計実施：<b id="streak-total" style="color:var(--accent2)">0</b> 日</div>
+    </div>
+    <div class="card">
+      <div class="muted" style="margin-bottom:8px">カレンダー（直近60日）</div>
+      <div class="streak-row" id="streak-cal"></div>
+    </div>
+    <div class="tip"><b>日課の目安</b>：アプリのホームから「フラッシュカード」か「ランダムクイズ」で20問解けばOK。
+      1問あたり10〜15秒 × 20問 = 約5分。朝・通勤・寝前など隙間時間にぴったりです。</div>
+  </section>
+
+  <!-- MATERIALS -->
+  <section class="panel" id="p-mat">
+    <h2 class="sec">📱 メインツール（アプリ中心で学習）</h2>
+    <div class="card">
+      <table>
+        <tr><th>役割</th><th>ツール</th><th>使い方</th></tr>
+        <tr><td>単語・概念インプット</td><td><b>G検定クイズアプリ</b>（このアプリ）<br><span class="muted">フラッシュカード / ランダムクイズ / ストーリーモード</span></td><td>1日20問（日課）</td></tr>
+        <tr><td>章末アウトプット</td><td><b>G検定クイズアプリ 試験モード</b><br><span class="muted">4択問題・章ごとに出題</span></td><td>各章修了後に1回</td></tr>
+        <tr><td>知識補強（辞書代わり）</td><td><b>参考書・Webテキスト</b><br><span class="muted">わからない用語が出たら検索</span></td><td>必要に応じて</td></tr>
+      </table>
+    </div>
+    <h2 class="sec">📕 参考書（任意）</h2>
+    <div class="card">
+      <table>
+        <tr><th>役割</th><th>教材</th></tr>
+        <tr><td>体系的インプット</td><td><b>ディープラーニングG検定（ジェネラリスト）テキスト</b>（翔泳社）<br><span class="muted">公式シラバス完全対応。通読よりも辞書的に使うのがおすすめ</span></td></tr>
+        <tr><td>過去問演習</td><td><b>G検定 問題集</b>（各社から複数あり）<br><span class="muted">直前期（第9〜10週）に模擬試験として活用</span></td></tr>
+      </table>
+    </div>
+    <h2 class="sec">🔗 公式・無料リソース</h2>
+    <div class="card">
+      <table>
+        <tr><th>種類</th><th>内容</th></tr>
+        <tr><td>公式シラバス</td><td><a href="https://www.jdla.org/certificate/general/" target="_blank" rel="noopener">JDLA G検定 公式ページ</a>　※出題範囲を確認</td></tr>
+        <tr><td>無料テキスト</td><td><a href="https://www.nttdata-gsl.co.jp/related/column/g-kentei/" target="_blank" rel="noopener">G検定解説記事（各社）</a>　※補足知識の確認に</td></tr>
+      </table>
+    </div>
+    <div class="tip"><b>効率的な進め方</b>：アプリで単語を覚えた後、わからない概念だけ参考書や記事で掘り下げる。
+      試験直前は問題集より<b>アプリの試験モードを周回</b>した方が出題形式に慣れます。</div>
+  </section>
+
+  <!-- EXAM -->
+  <section class="panel" id="p-exam">
+    <h2 class="sec">📝 G検定の概要</h2>
+    <div class="card">
+      <table>
+        <tr><th>項目</th><th>内容</th></tr>
+        <tr><td>主催</td><td>JDLA（日本ディープラーニング協会）</td></tr>
+        <tr><td>形式</td><td>オンライン受験（自宅 or 会場）</td></tr>
+        <tr><td>問題数</td><td>約145問</td></tr>
+        <tr><td>試験時間</td><td>100分（オンライン）/ 120分（会場）</td></tr>
+        <tr><td>合格ライン</td><td>非公開（例年60〜70%程度が目安とされる）</td></tr>
+        <tr><td>解答ペース</td><td>約41〜50秒/問</td></tr>
+      </table>
+    </div>
+    <h2 class="sec">📚 出題カテゴリ（シラバス準拠）</h2>
+    <div class="card">
+      <table>
+        <tr><th>カテゴリ</th><th>主な内容</th><th>アプリ章</th></tr>
+        <tr><td>人工知能とは</td><td>AIの定義・歴史・ルールベース vs ML</td><td>Ch1</td></tr>
+        <tr><td>機械学習の基礎</td><td>教師あり/なし学習・評価指標・アルゴリズム</td><td>Ch2</td></tr>
+        <tr><td>ディープラーニング</td><td>NN・CNN・RNN・最適化・Transformer・生成AI</td><td>Ch3</td></tr>
+        <tr><td>AIの応用技術</td><td>NLP・CV・音声・強化学習・マルチモーダル</td><td>Ch4</td></tr>
+        <tr><td>AIプロジェクト</td><td>開発プロセス・データ管理・MLOps</td><td>Ch5</td></tr>
+        <tr><td>AIと社会・倫理</td><td>法律・著作権・AI白書・プライバシー・倫理指針</td><td>Ch6</td></tr>
+        <tr><td>数理・統計</td><td>線形代数・確率・統計・ベイズ</td><td>Ch7</td></tr>
+      </table>
+    </div>
+    <div class="tip"><b>試験を解くコツ</b>：問題文が長い場合、選択肢から先に読んで「何を問われているか」を把握してから文章を読むと速くなります。
+      「最も適切なもの」「最も不適切なもの」の読み違いに注意（特に疲れてくる後半）。</div>
+    <div class="tip"><b>合格ライン設計の例</b>：145問 × 65% = 約94問正解が目安。
+      得意な応用系（Ch3〜5）で稼ぎ、法律・数理（Ch6〜7）はミスを最小限に抑える戦略が有効です。</div>
+  </section>
+
+  <footer>
+    データはこのブラウザ内（localStorage）に保存されます。<br>
+    更新：2026/7/7 ／ G検定 合格ロードマップ
+  </footer>
+</div>
+
+<script>
+"use strict";
+const EXAM = new Date("2026-09-05T13:00:00+09:00"); // G検定 2026年9月5日 13:00
+const START = new Date("2026-07-07T00:00:00+09:00");
+const GOAL_HOURS = 55;
+const LS = "gken_roadmap_v1";
+
+/* ---------- DATA ---------- */
+const WEEKS = [
+  {id:"w1", ph:"① Ch1〜Ch2 インプット", title:"第1週：AI史 + 機械学習基礎", dates:"7/7〜7/13",
+   tasks:[
+     "アプリでCh1（人工知能とは・31語）を20問/日ペースで学習",
+     "Ch2（機械学習・34語）を開始、前半を終える",
+     "試験モード：Chapter 1 章末問題を解く",
+     "理解度タブでCh1を自己評価する"
+   ]},
+  {id:"w2", ph:"① Ch2〜Ch3 インプット", title:"第2週：機械学習 完了 + ディープラーニング開始", dates:"7/14〜7/20",
+   tasks:[
+     "Ch2（34語）を完了させる",
+     "Ch3（ディープラーニング・66語）を開始、前半を終える",
+     "試験モード：Chapter 2 章末問題を解く",
+     "理解度タブでCh2を自己評価する"
+   ]},
+  {id:"w3", ph:"① Ch3 インプット", title:"第3週：ディープラーニング 深堀り", dates:"7/21〜7/27",
+   tasks:[
+     "Ch3 後半（CNN・RNN・Transformer・生成AI）を完了",
+     "ストーリーモード：Ch3「深層の宇宙」でエピソード学習",
+     "試験モード：Chapter 3 章末問題を解く",
+     "理解度タブでCh3を自己評価する"
+   ]},
+  {id:"w4", ph:"② Ch4 インプット", title:"第4週：AIの応用・開発技術", dates:"7/28〜8/3",
+   tasks:[
+     "Ch4（AIの応用・64語）を一気に学習",
+     "NLP・CV・音声・強化学習・生成AI応用を整理",
+     "試験モード：Chapter 4 章末問題を解く",
+     "理解度タブでCh4を自己評価する"
+   ]},
+  {id:"w5", ph:"② Ch5〜Ch6 インプット", title:"第5週：AIプロジェクトと社会・倫理", dates:"8/4〜8/10",
+   tasks:[
+     "Ch5（AIプロジェクト・33語）を学習",
+     "Ch6（AI社会・倫理・法律・23語）を学習",
+     "試験モード：Chapter 5・6 章末問題を解く",
+     "GDPR・AI白書・著作権の要点を確認"
+   ]},
+  {id:"w6", ph:"② Ch7 インプット + 第1回全体復習", title:"第6週：数理統計 完了 + 全体第1回復習", dates:"8/11〜8/17",
+   tasks:[
+     "Ch7（数理統計学・11語）を完了",
+     "全7章の単語をランダムモードで総ざらい（20問/日継続）",
+     "試験モード：Chapter 7 章末問題を解く",
+     "理解度タブで全章を更新し、弱点を把握する"
+   ]},
+  {id:"w7", ph:"③ 演習強化", title:"第7週：試験モードで全章演習", dates:"8/18〜8/24",
+   tasks:[
+     "試験モードで全章をひとめぐり（Ch1〜Ch7）",
+     "間違えた問題をメモして弱点リストを作る",
+     "理解度3以下の章を重点的に復習",
+     "フラッシュカードで弱点単語を集中的に潰す"
+   ]},
+  {id:"w8", ph:"③ 演習強化", title:"第8週：弱点補強", dates:"8/25〜8/31",
+   tasks:[
+     "弱点リストの単語をアプリで集中学習",
+     "試験モードをもう一周（全章）",
+     "苦手章のストーリーモードを再実施",
+     "理解度5を目指して全章チェックを更新"
+   ]},
+  {id:"w9", ph:"④ 直前準備", title:"第9週：本番ペース練習", dates:"9/1〜9/7",
+   tasks:[
+     "問題を50秒/問ペースで解く練習を意識する",
+     "G検定の出題カテゴリ割合を再確認",
+     "弱点に絞った最終補強",
+     "体調管理を始める（睡眠7h+）"
+   ]},
+  {id:"w10", ph:"④ 直前準備", title:"第10週：最終総まとめ", dates:"9/8〜9/14",
+   tasks:[
+     "全単語をランダムで一周（正解率90%目標）",
+     "理解度の赤・オレンジを最後につぶす",
+     "試験環境確認（PC・ネット・受験票・本人確認書類）",
+     "前日は早く寝る"
+   ]},
+  {id:"w11", ph:"⑤ 本番", title:"第11週：G検定 本番！", dates:"9/15〜9/20",
+   tasks:[
+     "直前まで1日20問の日課をキープ",
+     "本番：145問・100分のオンライン試験",
+     "選択肢を先に読んで問われていることを把握する",
+     "🎉 合格！次はE資格へ"
+   ]}
+];
+
+const TOPICS = [
+  // Ch1
+  {id:"ch1_1", name:"AIとは何か・AI定義の変遷", sub:"Ch1: 強いAI・弱いAI・トップダウン・ボトムアップ"},
+  {id:"ch1_2", name:"AI研究の歴史・3つのブーム", sub:"Ch1: 第1次〜第3次ブーム・冬の時代"},
+  {id:"ch1_3", name:"ルールベース vs 機械学習", sub:"Ch1: エキスパートシステム・知識獲得のボトルネック"},
+  // Ch2
+  {id:"ch2_1", name:"機械学習の種類", sub:"Ch2: 教師あり・教師なし・半教師あり・強化学習"},
+  {id:"ch2_2", name:"データ前処理・特徴量エンジニアリング", sub:"Ch2: 正規化・標準化・欠損値・外れ値"},
+  {id:"ch2_3", name:"評価指標（適合率・再現率・F値・AUC）", sub:"Ch2: 混同行列・ROC曲線"},
+  {id:"ch2_4", name:"主要アルゴリズム", sub:"Ch2: 決定木・SVM・k-NN・ランダムフォレスト"},
+  // Ch3
+  {id:"ch3_1", name:"ニューラルネットワーク基礎", sub:"Ch3: パーセプトロン・多層化・活性化関数"},
+  {id:"ch3_2", name:"CNN・画像認識", sub:"Ch3: 畳み込み・プーリング・ResNet・VGG"},
+  {id:"ch3_3", name:"RNN・LSTM・時系列処理", sub:"Ch3: 勾配消失・長期依存"},
+  {id:"ch3_4", name:"最適化・正則化・過学習対策", sub:"Ch3: SGD・Adam・Dropout・BatchNorm"},
+  {id:"ch3_5", name:"Transformer・Self-Attention", sub:"Ch3: BERT・GPT・Vision Transformer"},
+  {id:"ch3_6", name:"生成AI・拡散モデル・GAN", sub:"Ch3: VAE・Stable Diffusion・LLM"},
+  // Ch4
+  {id:"ch4_1", name:"自然言語処理（NLP）", sub:"Ch4: 形態素解析・Word2Vec・BERTの応用"},
+  {id:"ch4_2", name:"コンピュータビジョン", sub:"Ch4: 物体検出・セグメンテーション・YOLO"},
+  {id:"ch4_3", name:"強化学習・その他応用", sub:"Ch4: Q学習・Actor-Critic・グラフNN"},
+  {id:"ch4_4", name:"AIシステム開発・MLOps", sub:"Ch4: パイプライン・モデルサービング・モニタリング"},
+  // Ch5
+  {id:"ch5_1", name:"AIプロジェクトの進め方", sub:"Ch5: 問題定義・データ収集・評価・運用"},
+  {id:"ch5_2", name:"データサイエンティストのスキルセット", sub:"Ch5: ビジネス理解・統計・プログラミング"},
+  // Ch6
+  {id:"ch6_1", name:"AI倫理・公平性・透明性", sub:"Ch6: バイアス・フェアネス・説明可能AI (XAI)"},
+  {id:"ch6_2", name:"法律・著作権・個人情報保護", sub:"Ch6: GDPR・個情法・AI白書・著作権"},
+  // Ch7
+  {id:"ch7_1", name:"線形代数（行列・ベクトル演算）", sub:"Ch7: 内積・行列積・固有値・逆行列"},
+  {id:"ch7_2", name:"確率・統計の基礎", sub:"Ch7: 正規分布・ポアソン分布・ベイズの定理"},
+  {id:"ch7_3", name:"類似度・相関", sub:"Ch7: コサイン類似度・ピアソン相関係数"}
+];
+
+/* ---------- STATE ---------- */
+let state = load();
+function load(){
+  try{ return JSON.parse(localStorage.getItem(LS)) || {}; }catch(e){ return {}; }
+}
+function save(){ localStorage.setItem(LS, JSON.stringify(state)); }
+state.tasks  = state.tasks  || {};   // "w1-0": true
+state.under  = state.under  || {};   // "ch1_1": 3
+state.log    = state.log    || [];   // [{date, hours}]
+state.streak = state.streak || {};   // {"2026-07-07": true}
+
+/* ---------- HELPERS ---------- */
+function daysBetween(a,b){ return Math.ceil((b-a)/(1000*60*60*24)); }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function currentWeekIndex(){
+  const now = new Date();
+  const diff = Math.floor((now - START)/(1000*60*60*24));
+  const wk = Math.floor(diff/7);
+  return Math.max(0, Math.min(WEEKS.length-1, wk));
+}
+
+/* ---------- COUNTDOWN ---------- */
+function renderCountdown(){
+  const now = new Date();
+  const d = Math.max(0, daysBetween(now, EXAM));
+  const total = daysBetween(START, EXAM);
+  const passed = total - d;
+  const pct = Math.max(0, Math.min(100, Math.round(passed/total*100)));
+  let cls = ""; if(d<=14) cls="warn"; if(d<=7) cls="bad";
+  document.getElementById("countdown").innerHTML =
+    `<div class="cd-box ${cls}"><div class="num">${d}</div><div class="lbl">試験まで（日）</div></div>
+     <div class="cd-box"><div class="num">${Math.max(0,Math.ceil(d/7))}</div><div class="lbl">残り（週）</div></div>
+     <div class="cd-box"><div class="num">${pct}%</div><div class="lbl">期間の経過</div></div>
+     <div class="cd-box"><div class="num">${Object.keys(state.streak).length}</div><div class="lbl">日課実施（日）</div></div>`;
+}
+
+/* ---------- DASHBOARD ---------- */
+function taskStats(){
+  let total=0, done=0;
+  WEEKS.forEach(w=>w.tasks.forEach((_,i)=>{ total++; if(state.tasks[w.id+"-"+i]) done++; }));
+  return {total, done, pct: total? Math.round(done/total*100):0};
+}
+function underStats(){
+  const vals = TOPICS.map(t=>state.under[t.id]).filter(v=>v);
+  if(!vals.length) return {avg:null, count:0};
+  return {avg:(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1), count:vals.length};
+}
+function hoursTotal(){ return +state.log.reduce((a,b)=>a+(+b.hours||0),0).toFixed(2); }
+
+function streakCount(){
+  const days = Object.keys(state.streak).sort().reverse();
+  if(!days.length) return 0;
+  let count=0;
+  const today = todayStr();
+  let cur = new Date(today);
+  for(let i=0; i<days.length; i++){
+    const d = new Date(days[i]);
+    const diff = Math.round((cur-d)/(1000*60*60*24));
+    if(diff<=1){ count++; cur=d; } else break;
+  }
+  return count;
+}
+
+function renderDash(){
+  const ts = taskStats();
+  document.getElementById("d-prog").textContent = ts.pct+"%";
+  document.getElementById("d-bar").style.width = ts.pct+"%";
+  document.getElementById("d-bartxt").textContent = `${ts.done} / ${ts.total} タスク完了`;
+  const us = underStats();
+  document.getElementById("d-under").textContent = us.avg? us.avg+" / 5" : "–";
+  document.getElementById("d-hours").textContent = hoursTotal() + "h";
+
+  // streak mini
+  const sc = streakCount();
+  const total_s = Object.keys(state.streak).length;
+  document.getElementById("d-streak-info").textContent = `🔥 ${sc}日連続 ／ 累計${total_s}日`;
+  const today = todayStr();
+  let miniHtml="";
+  for(let i=13;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const ds=d.toISOString().slice(0,10);
+    const done=!!state.streak[ds], isToday=ds===today;
+    miniHtml+=`<div class="streak-day ${done?'done':''} ${isToday?'today':''}" title="${ds}">${d.getDate()}</div>`;
+  }
+  document.getElementById("d-streak-mini").innerHTML = miniHtml;
+
+  const wi = currentWeekIndex();
+  const w = WEEKS[wi];
+  document.getElementById("d-weeklbl").textContent = w.dates;
+  let html = `<div style="margin:6px 0 4px;font-weight:700">${w.title}</div>`;
+  w.tasks.forEach((t,i)=>{
+    const key=w.id+"-"+i, on=!!state.tasks[key];
+    html += `<label class="task ${on?'checked':''}"><input type="checkbox" data-k="${key}" ${on?'checked':''}><span>${t}</span></label>`;
+  });
+  document.getElementById("d-thisweek").innerHTML = html;
+}
+
+/* ---------- ROADMAP ---------- */
+function renderRoadmap(){
+  const wi = currentWeekIndex();
+  let html="", lastPhase="";
+  WEEKS.forEach((w,idx)=>{
+    if(w.ph!==lastPhase){ html+=`<h2 class="sec">${w.ph}</h2>`; lastPhase=w.ph; }
+    const isNow = idx===wi;
+    const allDone = w.tasks.every((_,i)=>state.tasks[w.id+"-"+i]);
+    let pill = isNow? `<span class="pill now">今週</span>` : `<span class="pill">予定</span>`;
+    if(allDone) pill = `<span class="pill done">✔ 完了</span>`;
+    html += `<div class="week ${isNow?'now':''}">
+      <div class="phase-head"><h3>${w.title}</h3>${pill}</div>
+      <div class="dates">${w.dates}</div>`;
+    w.tasks.forEach((t,i)=>{
+      const key=w.id+"-"+i, on=!!state.tasks[key];
+      html += `<label class="task ${on?'checked':''}"><input type="checkbox" data-k="${key}" ${on?'checked':''}><span>${t}</span></label>`;
+    });
+    html += `</div>`;
+  });
+  document.getElementById("roadmap").innerHTML = html;
+}
+
+/* ---------- UNDERSTANDING ---------- */
+function renderUnder(){
+  const chGroups = [
+    {label:"Ch1：人工知能とは・AI史", ids:["ch1_1","ch1_2","ch1_3"]},
+    {label:"Ch2：機械学習・データ処理", ids:["ch2_1","ch2_2","ch2_3","ch2_4"]},
+    {label:"Ch3：ディープラーニング", ids:["ch3_1","ch3_2","ch3_3","ch3_4","ch3_5","ch3_6"]},
+    {label:"Ch4：AIの応用・開発技術", ids:["ch4_1","ch4_2","ch4_3","ch4_4"]},
+    {label:"Ch5：AIプロジェクト・社会実装", ids:["ch5_1","ch5_2"]},
+    {label:"Ch6：AI社会・倫理・法律", ids:["ch6_1","ch6_2"]},
+    {label:"Ch7：数理統計学", ids:["ch7_1","ch7_2","ch7_3"]},
+  ];
+  let html="";
+  chGroups.forEach(g=>{
+    html+=`<div class="ch-head">${g.label}</div>`;
+    g.ids.forEach(id=>{
+      const t=TOPICS.find(x=>x.id===id); if(!t) return;
+      const v=state.under[t.id]||0;
+      let btns="";
+      for(let i=1;i<=5;i++) btns+=`<button data-t="${t.id}" data-v="${i}" class="${v===i?'on'+i:''}">${i}</button>`;
+      html+=`<div class="topic"><div class="name">${t.name}${t.sub?`<small>${t.sub}</small>`:''}</div><div class="lv">${btns}</div></div>`;
+    });
+  });
+  document.getElementById("under-list").innerHTML = html;
+}
+
+/* ---------- LOG ---------- */
+function renderLog(){
+  const total = hoursTotal();
+  const pct = Math.min(100, Math.round(total/GOAL_HOURS*100));
+  document.getElementById("log-total").textContent = total;
+  document.getElementById("log-pct").textContent = pct+"%";
+  document.getElementById("log-bar").style.width = pct+"%";
+  const list = [...state.log].sort((a,b)=> b.date.localeCompare(a.date));
+  if(!list.length){ document.getElementById("log-list").innerHTML='<div class="muted">まだ記録がありません。</div>'; return; }
+  document.getElementById("log-list").innerHTML = list.map(r=>
+    `<div class="logitem"><span>${r.date}</span><span>${r.hours}h <button class="btn ghost" data-del="${r.date}" style="padding:2px 8px;margin-left:8px">削除</button></span></div>`
+  ).join("");
+}
+
+/* ---------- STREAK ---------- */
+function renderStreak(){
+  const sc = streakCount();
+  const total_s = Object.keys(state.streak).length;
+  document.getElementById("streak-count").textContent = sc;
+  document.getElementById("streak-total").textContent = total_s;
+  const today = todayStr();
+  const doneToday = !!state.streak[today];
+  document.getElementById("streak-today-status").textContent = doneToday ? "✅ 今日は完了済み！" : "まだ今日の分が残っています";
+  document.getElementById("streak-today-btn").textContent = doneToday ? "✅ 完了済み（取り消す）" : "✅ 今日の20問、完了！";
+
+  // calendar: last 60 days
+  let calHtml="";
+  for(let i=59;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const ds=d.toISOString().slice(0,10);
+    const done=!!state.streak[ds], isToday=ds===today;
+    calHtml+=`<div class="streak-day ${done?'done':''} ${isToday?'today':''}" title="${ds}" data-streak-day="${ds}">${d.getDate()}</div>`;
+  }
+  document.getElementById("streak-cal").innerHTML = calHtml;
+}
+
+/* ---------- EVENTS ---------- */
+document.addEventListener("change", e=>{
+  if(e.target.matches('input[type="checkbox"][data-k]')){
+    const k=e.target.dataset.k;
+    if(e.target.checked) state.tasks[k]=true; else delete state.tasks[k];
+    save(); renderDash(); renderRoadmap();
+  }
+});
+document.addEventListener("click", e=>{
+  if(e.target.matches('.lv button')){
+    const t=e.target.dataset.t, v=+e.target.dataset.v;
+    if(state.under[t]===v) delete state.under[t]; else state.under[t]=v;
+    save(); renderUnder(); renderDash();
+  }
+  if(e.target.dataset.del){
+    state.log = state.log.filter(r=>r.date!==e.target.dataset.del);
+    save(); renderLog(); renderDash();
+  }
+  if(e.target.id==="streak-today-btn"){
+    const today = todayStr();
+    if(state.streak[today]) delete state.streak[today];
+    else state.streak[today]=true;
+    save(); renderStreak(); renderDash(); renderCountdown();
+  }
+  if(e.target.dataset.streakDay){
+    const ds=e.target.dataset.streakDay;
+    if(state.streak[ds]) delete state.streak[ds]; else state.streak[ds]=true;
+    save(); renderStreak(); renderDash(); renderCountdown();
+  }
+});
+document.getElementById("log-add").addEventListener("click", ()=>{
+  const d=document.getElementById("log-date").value;
+  const h=parseFloat(document.getElementById("log-hours").value);
+  if(!d || !h || h<=0){ alert("日付と時間（0より大）を入力してください"); return; }
+  const ex = state.log.find(r=>r.date===d);
+  if(ex) ex.hours = +(ex.hours + h).toFixed(2); else state.log.push({date:d, hours:h});
+  document.getElementById("log-hours").value="";
+  save(); renderLog(); renderDash();
+});
+
+/* tabs */
+document.getElementById("tabs").addEventListener("click", e=>{
+  if(!e.target.dataset.t) return;
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.remove("active"));
+  e.target.classList.add("active");
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  document.getElementById("p-"+e.target.dataset.t).classList.add("active");
+});
+
+/* init */
+document.getElementById("log-date").value = todayStr();
+renderCountdown(); renderDash(); renderRoadmap(); renderUnder(); renderLog(); renderStreak();
+</script>
+</body>
+</html>
